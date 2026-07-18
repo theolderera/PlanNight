@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 9 (API 28) and above block plain HTTP ("cleartext") traffic by default.
+  Production talks to the Hetzner server over HTTPS, so we keep that default.
+
+  The exceptions below exist only so a physical device or emulator can reach a
+  backend running on the developer's machine over the LAN, where there is no
+  TLS certificate to present.
+
+  Android accepts only literal hosts here — no wildcards, no CIDR ranges — so a
+  LAN IP has to be listed one by one. DHCP hands out a new address whenever you
+  join a different Wi-Fi, and then the app fails with "Cannot reach the server"
+  even though the backend is fine.
+
+  Prefer `adb reverse tcp:4000 tcp:4000` over a LAN IP: the phone then talks to
+  its OWN localhost (already allowed below) and the traffic travels down the USB
+  cable, immune to changing IPs, guest-network client isolation and firewalls.
+  Build such an APK with API_BASE_URL set to http://localhost:4000/api, then run
+  the `adb reverse` command above before launching it.
+
+  If you do use a LAN IP, add it below and rebuild. Find it with `ipconfig`.
+
+  (Note for editors: XML forbids a double hyphen inside a comment, so command
+  line flags cannot be spelled out here.)
+-->
+<network-security-config>
+    <!-- Everything not listed below must use HTTPS. -->
+    <base-config cleartextTrafficPermitted="false" />
+
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- The Android emulator's alias for the host machine's localhost. -->
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <!-- The phone's own localhost — the `adb reverse` target. Never changes. -->
+        <domain includeSubdomains="false">localhost</domain>
+        <!-- Known LAN addresses of this dev machine (DHCP moves it around). -->
+        <domain includeSubdomains="false">192.168.28.137</domain>
+        <domain includeSubdomains="false">192.168.31.137</domain>
+        <!-- The MVPS production server. Cleartext because it has no TLS cert yet
+             (IP only, no domain). Swap for HTTPS once a domain + Let's Encrypt is
+             set up, then this entry can go. -->
+        <domain includeSubdomains="false">91.227.40.11</domain>
+    </domain-config>
+</network-security-config>

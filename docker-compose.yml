@@ -1,0 +1,103 @@
+# =============================================================================
+# PlanNight — local & server orchestration
+#
+#   db       : PostgreSQL 16 with a persistent named volume.
+#   migrate  : one-shot service that applies SQL migrations, then exits.
+#   api      : the Express backend, started only after migrations succeed.
+#
+# Quick start:
+#   cp .env.example .env                      # DB credentials (read by Compose)
+#   cp backend/.env.example backend/.env      # then edit JWT secrets
+#   docker compose up --build
+#
+# The API will be on http://localhost:4000 (health: /health).
+#
+# IMPORTANT — where DB credentials come from:
+#   `${DB_PASSWORD}` below is interpolated by Compose itself, which only reads
+#   the shell environment and the ROOT `.env` file. It does NOT read
+#   `backend/.env`. So the credentials Postgres is *created* with, and the ones
+#   the API *connects* with, must come from one source or they silently drift:
+#   Postgres would initialise with the default "plannight" while the API tried a
+#   strong password from backend/.env, and every query would fail.
+#
+#   Fix: the root `.env` is the single source of truth. The `environment:` keys
+#   on `migrate` and `api` below re-inject the same values, overriding whatever
+#   DB_* happens to sit in backend/.env (which then only needs the JWT secrets).
+# =============================================================================
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-plannight}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-plannight}
+      POSTGRES_DB: ${DB_NAME:-plannight}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      # Exposed for local inspection (psql/GUI) and for running the API on the
+      # host with `npm run dev`. Remove on a hardened server.
+      #
+      # Published on 5433 by default, NOT 5432: a natively-installed PostgreSQL
+      # is a common thing to have, it claims 5432 at boot, and Docker then fails
+      # to bind without saying so. Every host connection silently lands on the
+      # wrong server, which answers "password authentication failed for user
+      # plannight" — a confusing error for a database that is running fine.
+      - "${DB_PORT_HOST:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-plannight} -d ${DB_NAME:-plannight}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Runs migrations once and exits 0. `api` waits for this to complete.
+  migrate:
+    build:
+      context: ./backend
+    env_file:
+      - ./backend/.env
+    environment:
+      # Inside the compose network the DB host is the service name, and Postgres
+      # listens on its own 5432 — the host-side DB_PORT in backend/.env (5433)
+      # must not leak in here.
+      DB_HOST: db
+      DB_PORT: 5432
+      # Same source of truth as the `db` service — see the header note.
+      DB_USER: ${DB_USER:-plannight}
+      DB_PASSWORD: ${DB_PASSWORD:-plannight}
+      DB_NAME: ${DB_NAME:-plannight}
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["node", "src/db/migrate.js", "up"]
+    restart: "no"
+
+  api:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      NODE_ENV: ${NODE_ENV:-production}
+      # Same source of truth as the `db` service — see the header note.
+      DB_USER: ${DB_USER:-plannight}
+      DB_PASSWORD: ${DB_PASSWORD:-plannight}
+      DB_NAME: ${DB_NAME:-plannight}
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - "${PORT:-4000}:4000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

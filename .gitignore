@@ -1,0 +1,29 @@
+# Node
+node_modules/
+*.log
+
+# Env — NEVER commit real secrets. Only the *.example files are tracked.
+.env
+.env.local
+.env.*.local
+backend/.env
+
+# Claude Code local tooling config (permissions, transient state) — not source.
+.claude/
+
+# Deploy keys / certs, wherever they may land.
+*.pem
+*_key
+*_key.pub
+id_ed25519*
+id_rsa*
+
+# Flutter (added when the mobile app is scaffolded)
+mobile/.dart_tool/
+mobile/build/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,14 @@
+# Configuration for `flutter gen-l10n`, which runs automatically because
+# pubspec.yaml sets `flutter: generate: true`.
+#
+# app_en.arb is the template: it carries the @-metadata (descriptions and
+# placeholder types) and every other locale is checked against it. A key missing
+# from app_ru.arb / app_tg.arb would fall back to English, so we keep them in
+# lockstep — `untranslated-messages-file` makes any gap visible instead of
+# silently shipping English text inside a Russian UI.
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+untranslated-messages-file: l10n_untranslated.json
+nullable-getter: false
