@@ -4,14 +4,16 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/date_utils.dart';
 import '../../../core/l10n.dart';
+import '../../../core/theme.dart';
 import '../../../data/models/category.dart';
 import '../../../data/models/task.dart';
 import '../../../data/repositories/task_repository.dart';
 import '../../../data/ui_providers.dart';
 
-/// A single task row: check-off control, time, title, category & priority, and
-/// an actions menu (edit / skip / reschedule / delete). Reused by Today and
-/// History.
+/// A single task row in the redesigned style: a status control, the title with
+/// a time/category caption, a "NOW" marker for the task happening this minute,
+/// and a category colour accent. Tap to edit, swipe right to complete, swipe
+/// left to skip, long-press for more actions. Reused (read-only) by History.
 class TaskTile extends ConsumerWidget {
   const TaskTile(this.task, {super.key, this.readOnly = false});
 
@@ -20,16 +22,23 @@ class TaskTile extends ConsumerWidget {
   /// When true (e.g. viewing a past day in history), actions are hidden.
   final bool readOnly;
 
-  Color _priorityColor(ColorScheme scheme) => switch (task.priority) {
-        Priority.high => Colors.redAccent,
-        Priority.medium => Colors.amber.shade700,
-        Priority.low => scheme.outline,
-      };
+  /// True when this timed, still-pending task's window contains the current
+  /// moment (today only). Gives the "NOW" accent + border.
+  bool get _isNow {
+    if (task.status != TaskStatus.planned || task.startTime == null) return false;
+    if (!Dates.isSameDay(task.planDate, Dates.today())) return false;
+    final tod = task.startTimeOfDay;
+    if (tod == null) return false;
+    final now = TimeOfDay.now();
+    final startMin = tod.hour * 60 + tod.minute;
+    final nowMin = now.hour * 60 + now.minute;
+    final span = task.durationMinutes ?? 60;
+    return nowMin >= startMin && nowMin < startMin + span;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
+    final c = context.colors;
     final l10n = context.l10n;
     final category = task.categoryId == null
         ? null
@@ -40,32 +49,29 @@ class TaskTile extends ConsumerWidget {
     final isSkipped = task.status == TaskStatus.skipped;
     final isRescheduled = task.status == TaskStatus.rescheduled;
     final muted = isDone || isSkipped || isRescheduled;
+    final isNow = _isNow;
 
-    // "09:30 · moved" — the suffix explains why a task looks struck through.
-    final time = DateLabels(l10n).time(context, task.startTime);
-    final subtitle = switch (task.status) {
-      TaskStatus.rescheduled => '$time · ${l10n.taskMoved}',
-      TaskStatus.skipped => '$time · ${l10n.taskSkipped}',
-      _ => time,
-    };
+    final accentColor = category?.color ?? c.textFaint;
 
-    final card = Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    final card = Opacity(
+      opacity: isDone || isRescheduled ? 0.62 : 1,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: isNow ? Border.all(color: c.accent, width: 1.5) : null,
+          boxShadow: [
+            BoxShadow(
+              color: isNow ? c.accent.withValues(alpha: 0.18) : c.shadow,
+              blurRadius: isNow ? 18 : 10,
+              offset: Offset(0, isNow ? 6 : 2),
+              spreadRadius: -6,
+            ),
+          ],
+        ),
         child: Row(
           children: [
-            // Category colour accent.
-            Container(
-              width: 4,
-              height: 44,
-              margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                color: (category?.color ?? scheme.outlineVariant),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            // Check-off control.
             _StatusControl(
               status: task.status,
               onToggle: readOnly
@@ -75,51 +81,37 @@ class TaskTile extends ConsumerWidget {
                         isDone ? TaskStatus.planned : TaskStatus.completed,
                       ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     task.title,
-                    style: theme.textTheme.titleSmall?.copyWith(
+                    style: TextStyle(
+                      fontFamily: AppFonts.sans,
+                      fontSize: 14,
+                      fontWeight: isNow ? FontWeight.w700 : FontWeight.w600,
                       decoration: muted ? TextDecoration.lineThrough : null,
-                      color: muted ? scheme.onSurfaceVariant : scheme.onSurface,
+                      color: muted ? c.textMuted : c.ink,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Icon(Icons.schedule, size: 13, color: scheme.onSurfaceVariant),
-                      const SizedBox(width: 3),
-                      Text(
-                        subtitle,
-                        style: theme.textTheme.bodySmall
-                            ?.copyWith(color: scheme.onSurfaceVariant),
-                      ),
-                      if (category != null) ...[
-                        const SizedBox(width: 8),
-                        _CategoryChip(category),
-                      ],
-                    ],
-                  ),
+                  const SizedBox(height: 4),
+                  _Caption(task: task, category: category, isNow: isNow),
                 ],
               ),
             ),
-            // Priority dot.
+            const SizedBox(width: 10),
             Container(
-              width: 8,
-              height: 8,
-              margin: const EdgeInsets.symmetric(horizontal: 6),
+              width: 4,
+              height: 34,
               decoration: BoxDecoration(
-                color: _priorityColor(scheme),
-                shape: BoxShape.circle,
+                color: accentColor,
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-            if (!readOnly)
-              _TaskMenu(task: task, repo: repo),
           ],
         ),
       ),
@@ -127,74 +119,141 @@ class TaskTile extends ConsumerWidget {
 
     if (readOnly) return card;
 
-    // Swipe shortcuts for the two most frequent actions. `confirmDismiss`
-    // performs the action and returns false, so the tile is never removed from
-    // the tree — the optimistic cache write re-renders it in its new state
-    // (and a second swipe undoes, since both actions toggle).
+    final interactive = GestureDetector(
+      onTap: () => context.push('/task/edit', extra: task),
+      onLongPress: () => _showActions(context, repo, l10n),
+      child: card,
+    );
+
+    // Swipe: right = complete/undo, left = skip/undo. confirmDismiss performs
+    // the action and returns false, so the row stays and re-renders in its new
+    // state (a second swipe undoes, since both actions toggle).
     return Dismissible(
       key: ValueKey('swipe-${task.id}'),
       direction: DismissDirection.horizontal,
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.startToEnd) {
-          await repo.setStatus(
-              task, isDone ? TaskStatus.planned : TaskStatus.completed);
+          await repo.setStatus(task, isDone ? TaskStatus.planned : TaskStatus.completed);
         } else {
-          await repo.setStatus(
-              task, isSkipped ? TaskStatus.planned : TaskStatus.skipped);
+          await repo.setStatus(task, isSkipped ? TaskStatus.planned : TaskStatus.skipped);
         }
         return false;
       },
-      background: _SwipeBackground(
+      background: _SwipeBg(
         alignment: Alignment.centerLeft,
-        color: scheme.primary,
-        icon: isDone ? Icons.undo : Icons.check_circle_outline,
+        color: c.success,
+        icon: isDone ? Icons.undo_rounded : Icons.check_rounded,
         label: isDone ? l10n.markNotDone : l10n.markDone,
       ),
-      secondaryBackground: _SwipeBackground(
+      secondaryBackground: _SwipeBg(
         alignment: Alignment.centerRight,
-        color: scheme.error,
-        icon: isSkipped ? Icons.undo : Icons.cancel_outlined,
+        color: c.textMuted,
+        icon: isSkipped ? Icons.undo_rounded : Icons.close_rounded,
         label: l10n.skip,
       ),
-      child: card,
+      child: interactive,
+    );
+  }
+
+  Future<void> _showActions(BuildContext context, TaskRepository repo, AppLocalizations l10n) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetCtx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _ActionRow(
+              icon: Icons.edit_outlined,
+              label: l10n.edit,
+              onTap: () {
+                Navigator.pop(sheetCtx);
+                context.push('/task/edit', extra: task);
+              },
+            ),
+            _ActionRow(
+              icon: Icons.event_repeat_rounded,
+              label: l10n.reschedule,
+              onTap: () async {
+                Navigator.pop(sheetCtx);
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: Dates.tomorrow(),
+                  firstDate: Dates.today().subtract(const Duration(days: 365)),
+                  lastDate: Dates.today().add(const Duration(days: 365)),
+                );
+                if (picked != null) await repo.reschedule(task, picked);
+              },
+            ),
+            _ActionRow(
+              icon: Icons.delete_outline_rounded,
+              label: l10n.delete,
+              danger: true,
+              onTap: () {
+                Navigator.pop(sheetCtx);
+                repo.delete(task);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
     );
   }
 }
 
-/// The coloured strip revealed behind a task while swiping.
-class _SwipeBackground extends StatelessWidget {
-  const _SwipeBackground({
-    required this.alignment,
-    required this.color,
-    required this.icon,
-    required this.label,
-  });
-
-  final Alignment alignment;
-  final Color color;
-  final IconData icon;
-  final String label;
+class _Caption extends StatelessWidget {
+  const _Caption({required this.task, required this.category, required this.isNow});
+  final Task task;
+  final Category? category;
+  final bool isNow;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      alignment: alignment,
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: Colors.white),
-          const SizedBox(width: 8),
-          Text(label,
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.w600)),
-        ],
-      ),
+    final c = context.colors;
+    final l10n = context.l10n;
+    final time = DateLabels(l10n).time(context, task.startTime);
+
+    final parts = <(String, Color)>[(time, c.textMuted)];
+    if (category != null) parts.add((category!.name, c.textMuted));
+    if (isNow) {
+      parts.add((l10n.now, c.accent));
+    } else if (task.status == TaskStatus.rescheduled) {
+      parts.add((l10n.taskMoved, c.textMuted));
+    } else if (task.status == TaskStatus.skipped) {
+      parts.add((l10n.taskSkipped, c.textMuted));
+    }
+
+    return Row(
+      children: [
+        Icon(Icons.schedule_rounded, size: 12, color: c.textMuted),
+        const SizedBox(width: 4),
+        Flexible(
+          child: Text.rich(
+            TextSpan(
+              children: [
+                for (var i = 0; i < parts.length; i++) ...[
+                  if (i > 0)
+                    TextSpan(
+                        text: '  ·  ',
+                        style: TextStyle(color: c.textFaint, fontWeight: FontWeight.w600)),
+                  TextSpan(
+                    text: parts[i].$1,
+                    style: TextStyle(
+                      fontFamily: AppFonts.mono,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: parts[i].$2,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -206,89 +265,87 @@ class _StatusControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final l10n = context.l10n;
-    final (icon, color) = switch (status) {
-      TaskStatus.completed => (Icons.check_circle, scheme.primary),
-      TaskStatus.skipped => (Icons.cancel, scheme.error),
-      TaskStatus.rescheduled => (Icons.event_repeat, scheme.tertiary),
-      TaskStatus.planned => (Icons.radio_button_unchecked, scheme.outline),
-    };
-    return IconButton(
-      onPressed: onToggle,
-      icon: Icon(icon, color: color),
-      visualDensity: VisualDensity.compact,
-      tooltip: status == TaskStatus.completed ? l10n.markNotDone : l10n.markDone,
+    final c = context.colors;
+
+    Widget box;
+    switch (status) {
+      case TaskStatus.completed:
+        box = Container(
+          decoration: BoxDecoration(color: c.success, borderRadius: BorderRadius.circular(9)),
+          child: const Icon(Icons.check_rounded, size: 17, color: Colors.white),
+        );
+      case TaskStatus.skipped:
+        box = Container(
+          decoration: BoxDecoration(color: c.textMuted, borderRadius: BorderRadius.circular(9)),
+          child: const Icon(Icons.close_rounded, size: 16, color: Colors.white),
+        );
+      case TaskStatus.rescheduled:
+        box = Container(
+          decoration: BoxDecoration(color: c.accentTint, borderRadius: BorderRadius.circular(9)),
+          child: Icon(Icons.event_repeat_rounded, size: 15, color: c.accent),
+        );
+      case TaskStatus.planned:
+        box = Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(9),
+            border: Border.all(color: c.border, width: 2),
+          ),
+        );
+    }
+
+    return GestureDetector(
+      onTap: onToggle,
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(width: 26, height: 26, child: box),
     );
   }
 }
 
-class _CategoryChip extends StatelessWidget {
-  const _CategoryChip(this.category);
-  final Category category;
+class _SwipeBg extends StatelessWidget {
+  const _SwipeBg({required this.alignment, required this.color, required this.icon, required this.label});
+  final Alignment alignment;
+  final Color color;
+  final IconData icon;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
+    final right = alignment == Alignment.centerRight;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-      decoration: BoxDecoration(
-        color: category.color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        category.name,
-        style: TextStyle(fontSize: 11, color: category.color, fontWeight: FontWeight.w600),
+      alignment: alignment,
+      padding: const EdgeInsets.symmetric(horizontal: 22),
+      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(16)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!right) Icon(icon, color: Colors.white, size: 20),
+          if (!right) const SizedBox(width: 8),
+          Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
+          if (right) const SizedBox(width: 8),
+          if (right) Icon(icon, color: Colors.white, size: 20),
+        ],
       ),
     );
   }
 }
 
-class _TaskMenu extends StatelessWidget {
-  const _TaskMenu({required this.task, required this.repo});
-  final Task task;
-  final TaskRepository repo;
+class _ActionRow extends StatelessWidget {
+  const _ActionRow({required this.icon, required this.label, required this.onTap, this.danger = false});
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool danger;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return PopupMenuButton<String>(
-      icon: const Icon(Icons.more_vert),
-      onSelected: (value) async {
-        switch (value) {
-          case 'edit':
-            context.push('/task/edit', extra: task);
-          case 'skip':
-            await repo.setStatus(task, TaskStatus.skipped);
-          case 'reschedule':
-            final picked = await showDatePicker(
-              context: context,
-              initialDate: Dates.tomorrow(),
-              firstDate: Dates.today().subtract(const Duration(days: 365)),
-              lastDate: Dates.today().add(const Duration(days: 365)),
-            );
-            if (picked != null) await repo.reschedule(task, picked);
-          case 'delete':
-            await repo.delete(task);
-        }
-      },
-      itemBuilder: (_) => [
-        PopupMenuItem(
-          value: 'edit',
-          child: ListTile(leading: const Icon(Icons.edit_outlined), title: Text(l10n.edit)),
-        ),
-        PopupMenuItem(
-          value: 'skip',
-          child: ListTile(leading: const Icon(Icons.cancel_outlined), title: Text(l10n.skip)),
-        ),
-        PopupMenuItem(
-          value: 'reschedule',
-          child: ListTile(leading: const Icon(Icons.event_repeat), title: Text(l10n.reschedule)),
-        ),
-        PopupMenuItem(
-          value: 'delete',
-          child: ListTile(leading: const Icon(Icons.delete_outline), title: Text(l10n.delete)),
-        ),
-      ],
+    final c = context.colors;
+    final color = danger ? c.danger : c.ink;
+    return ListTile(
+      leading: Icon(icon, color: danger ? c.danger : c.textSecondary),
+      title: Text(label,
+          style: TextStyle(
+              fontFamily: AppFonts.sans, fontWeight: FontWeight.w600, color: color)),
+      onTap: onTap,
     );
   }
 }

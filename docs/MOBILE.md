@@ -3,7 +3,33 @@
 > Flutter 3.44 / Dart 3.12, Android-first. Riverpod (state), go_router
 > (navigation), drift (SQLite cache), dio (HTTP), fl_chart (charts),
 > flutter_local_notifications (reminders). Offline-first throughout.
-> Run `flutter analyze && flutter test` (42 tests) after any change.
+> Run `flutter analyze && flutter test` (53 tests) after any change.
+
+## Design system — "Daylight" (light) / "Nocturne" (dark)
+
+One visual language, defined in `core/theme.dart`:
+
+- **Palette** lives on `AppColors` (a `ThemeExtension`), read via `context.colors`
+  — warm `paper`, white `surface`, deep-navy hero cards `navy`, cobalt `accent`,
+  gold `streakStart/End`, `success`, `textSecondary/Muted/Faint`, `border`,
+  `divider`, `trackBg`, `danger*`. Light and dark are both hand-tuned; `lerp`
+  animates theme switches.
+- **Type**: two bundled variable fonts (`assets/fonts/`, OFL) — `PlusJakartaSans`
+  (UI, the default family) + `SpaceGrotesk` (numbers/times/stats, via
+  `context.mono(...)`). Don't introduce another font.
+- **Icons are Material rounded/outlined only — NO emoji anywhere** (product rule).
+  The brand mark is drawn: `AppLogo` (a `CustomPainter`, crescent + check).
+- **Shared widgets** (`core/widgets/app_widgets.dart`): `AppLogo`, `ProgressRing`,
+  `SurfaceCard` (standard shadowed card), `PillSegment` (sliding segmented
+  control), `FieldTile`, `FieldLabel`, `SectionLabel`. Reuse these — don't
+  hand-roll card `BoxDecoration`s. Component themes (buttons/inputs/nav/switch/
+  slider/chips/dialogs/sheets/snackbars/popups) are all set in `theme.dart`.
+- `test/design_test.dart` renders every block in both brightnesses (incl. the
+  painters) as a regression guard.
+
+When adding UI: colours from `context.colors`, text from the `TextTheme` or
+`context.mono`, layout from the shared widgets. Keep the two-font and no-emoji
+rules.
 
 ## File map (`mobile/lib/`)
 

@@ -226,6 +226,60 @@ abstract class AppLocalizations {
   /// **'Sign up failed'**
   String get signUpFailed;
 
+  /// Personal greeting on the Today header.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello, {name}'**
+  String greeting(String name);
+
+  /// Title of the progress hero card on Today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s progress'**
+  String get todaysProgress;
+
+  /// Encouraging tail shown when the day is not yet complete.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep going!'**
+  String get keepGoing;
+
+  /// Shown in the progress hero when every task is complete.
+  ///
+  /// In en, this message translates to:
+  /// **'All done. Great work!'**
+  String get allDone;
+
+  /// Streak length as a short chip label.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} day} other{{count} days}}'**
+  String streakDays(int count);
+
+  /// Summary of how many tasks a planned day holds.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing planned yet} one{{count} task planned} other{{count} tasks planned}}'**
+  String tasksPlanned(int count);
+
+  /// Heading above the Today task list.
+  ///
+  /// In en, this message translates to:
+  /// **'Day schedule'**
+  String get daySchedule;
+
+  /// Tag on the task whose time is happening now.
+  ///
+  /// In en, this message translates to:
+  /// **'NOW'**
+  String get now;
+
+  /// Settings row opening app info.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get about;
+
   /// No description provided for @today.
   ///
   /// In en, this message translates to:
@@ -399,6 +453,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Change'**
   String get change;
+
+  /// Subtitle on the Plan screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare tomorrow, tonight'**
+  String get planTonight;
+
+  /// History calendar legend: a day that met the goal.
+  ///
+  /// In en, this message translates to:
+  /// **'Good day'**
+  String get legendGoodDay;
+
+  /// No description provided for @legendPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Partial'**
+  String get legendPartial;
+
+  /// No description provided for @legendEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty'**
+  String get legendEmpty;
 
   /// No description provided for @planningFor.
   ///
@@ -592,6 +670,12 @@ abstract class AppLocalizations {
   /// **'Timezone: {timezone}'**
   String timezoneLabel(String timezone);
 
+  /// Label above the theme (system/light/dark) selector.
+  ///
+  /// In en, this message translates to:
+  /// **'Display mode'**
+  String get themeMode;
+
   /// No description provided for @themeSystem.
   ///
   /// In en, this message translates to:
@@ -711,6 +795,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Duration (minutes, optional)'**
   String get durationLabel;
+
+  /// Short duration field caption in the compact time/duration row.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get durationLabelShort;
+
+  /// Abbreviated minutes unit shown as an input suffix.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get minutesSuffix;
 
   /// No description provided for @durationMustBePositive.
   ///
@@ -889,7 +985,7 @@ abstract class AppLocalizations {
   /// Title of the daily evening notification nudging the user to plan the next day.
   ///
   /// In en, this message translates to:
-  /// **'Plan tomorrow 🌙'**
+  /// **'Plan tomorrow'**
   String get eveningReminderTitle;
 
   /// No description provided for @eveningReminderBody.

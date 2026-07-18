@@ -72,6 +72,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signUpFailed => 'Sign up failed';
 
   @override
+  String greeting(String name) {
+    return 'Hello, $name';
+  }
+
+  @override
+  String get todaysProgress => 'Today\'s progress';
+
+  @override
+  String get keepGoing => 'Keep going!';
+
+  @override
+  String get allDone => 'All done. Great work!';
+
+  @override
+  String streakDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '$count day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tasksPlanned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tasks planned',
+      one: '$count task planned',
+      zero: 'Nothing planned yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get daySchedule => 'Day schedule';
+
+  @override
+  String get now => 'NOW';
+
+  @override
+  String get about => 'About';
+
+  @override
   String get today => 'Today';
 
   @override
@@ -159,6 +205,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get change => 'Change';
+
+  @override
+  String get planTonight => 'Prepare tomorrow, tonight';
+
+  @override
+  String get legendGoodDay => 'Good day';
+
+  @override
+  String get legendPartial => 'Partial';
+
+  @override
+  String get legendEmpty => 'Empty';
 
   @override
   String get planningFor => 'Planning for';
@@ -269,6 +327,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get themeMode => 'Display mode';
+
+  @override
   String get themeSystem => 'System';
 
   @override
@@ -332,6 +393,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get durationLabel => 'Duration (minutes, optional)';
+
+  @override
+  String get durationLabelShort => 'Duration';
+
+  @override
+  String get minutesSuffix => 'min';
 
   @override
   String get durationMustBePositive => 'Enter a positive number';
@@ -431,7 +498,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Too many attempts. Please try again later.';
 
   @override
-  String get eveningReminderTitle => 'Plan tomorrow 🌙';
+  String get eveningReminderTitle => 'Plan tomorrow';
 
   @override
   String get eveningReminderBody =>

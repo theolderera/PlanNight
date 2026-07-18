@@ -32,6 +32,34 @@
   "loginFailed": "Login failed",
   "signUpFailed": "Sign up failed",
 
+  "greeting": "Hello, {name}",
+  "@greeting": {
+    "description": "Personal greeting on the Today header.",
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "todaysProgress": "Today's progress",
+  "@todaysProgress": { "description": "Title of the progress hero card on Today." },
+  "keepGoing": "Keep going!",
+  "@keepGoing": { "description": "Encouraging tail shown when the day is not yet complete." },
+  "allDone": "All done. Great work!",
+  "@allDone": { "description": "Shown in the progress hero when every task is complete." },
+  "streakDays": "{count, plural, one{{count} day} other{{count} days}}",
+  "@streakDays": {
+    "description": "Streak length as a short chip label.",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "tasksPlanned": "{count, plural, =0{Nothing planned yet} one{{count} task planned} other{{count} tasks planned}}",
+  "@tasksPlanned": {
+    "description": "Summary of how many tasks a planned day holds.",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "daySchedule": "Day schedule",
+  "@daySchedule": { "description": "Heading above the Today task list." },
+  "now": "NOW",
+  "@now": { "description": "Tag on the task whose time is happening now." },
+  "about": "About",
+  "@about": { "description": "Settings row opening app info." },
+
   "today": "Today",
   "tomorrow": "Tomorrow",
   "yesterday": "Yesterday",
@@ -74,6 +102,13 @@
   "cancel": "Cancel",
   "save": "Save",
   "change": "Change",
+
+  "planTonight": "Prepare tomorrow, tonight",
+  "@planTonight": { "description": "Subtitle on the Plan screen." },
+  "legendGoodDay": "Good day",
+  "legendPartial": "Partial",
+  "legendEmpty": "Empty",
+  "@legendGoodDay": { "description": "History calendar legend: a day that met the goal." },
 
   "planningFor": "Planning for",
   "generateFromTemplates": "Generate from templates",
@@ -129,6 +164,8 @@
   "settingsOrganise": "Organise",
   "timezoneLabel": "Timezone: {timezone}",
   "@timezoneLabel": { "placeholders": { "timezone": { "type": "String" } } },
+  "themeMode": "Display mode",
+  "@themeMode": { "description": "Label above the theme (system/light/dark) selector." },
   "themeSystem": "System",
   "themeLight": "Light",
   "themeDark": "Dark",
@@ -153,6 +190,10 @@
   "dateLabel": "Date",
   "startTimeLabel": "Start time",
   "durationLabel": "Duration (minutes, optional)",
+  "durationLabelShort": "Duration",
+  "@durationLabelShort": { "description": "Short duration field caption in the compact time/duration row." },
+  "minutesSuffix": "min",
+  "@minutesSuffix": { "description": "Abbreviated minutes unit shown as an input suffix." },
   "durationMustBePositive": "Enter a positive number",
   "reminderLabel": "Reminder",
   "saveChanges": "Save changes",
@@ -189,7 +230,7 @@
   "errorSameDate": "The task is already scheduled on that date.",
   "errorTooManyAttempts": "Too many attempts. Please try again later.",
 
-  "eveningReminderTitle": "Plan tomorrow 🌙",
+  "eveningReminderTitle": "Plan tomorrow",
   "@eveningReminderTitle": { "description": "Title of the daily evening notification nudging the user to plan the next day." },
   "eveningReminderBody": "A few minutes tonight sets up a winning day tomorrow.",
   "eveningReminderTitle2": "Evening planning reminder",

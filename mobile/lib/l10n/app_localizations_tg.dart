@@ -72,6 +72,52 @@ class AppLocalizationsTg extends AppLocalizations {
   String get signUpFailed => 'Сабти ном муяссар нашуд';
 
   @override
+  String greeting(String name) {
+    return 'Салом, $name';
+  }
+
+  @override
+  String get todaysProgress => 'Пешрафти имрӯз';
+
+  @override
+  String get keepGoing => 'Ҳамин тавр давом деҳ!';
+
+  @override
+  String get allDone => 'Ҳама иҷро шуд. Офарин!';
+
+  @override
+  String streakDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count рӯз',
+      one: '$count рӯз',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tasksPlanned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count вазифа ба нақша гирифта шуд',
+      one: '$count вазифа ба нақша гирифта шуд',
+      zero: 'Ҳанӯз ҳеҷ чиз ба нақша гирифта нашудааст',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get daySchedule => 'Ҷадвали рӯз';
+
+  @override
+  String get now => 'ҲОЗИР';
+
+  @override
+  String get about => 'Дар бораи барнома';
+
+  @override
   String get today => 'Имрӯз';
 
   @override
@@ -160,6 +206,18 @@ class AppLocalizationsTg extends AppLocalizations {
 
   @override
   String get change => 'Тағйир додан';
+
+  @override
+  String get planTonight => 'Фардоятро имшаб тайёр кун';
+
+  @override
+  String get legendGoodDay => 'Рӯзи хуб';
+
+  @override
+  String get legendPartial => 'Қисман';
+
+  @override
+  String get legendEmpty => 'Холӣ';
 
   @override
   String get planningFor => 'Нақша барои';
@@ -270,6 +328,9 @@ class AppLocalizationsTg extends AppLocalizations {
   }
 
   @override
+  String get themeMode => 'Режими намоиш';
+
+  @override
   String get themeSystem => 'Системавӣ';
 
   @override
@@ -333,6 +394,12 @@ class AppLocalizationsTg extends AppLocalizations {
 
   @override
   String get durationLabel => 'Давомнокӣ (дақиқа, ихтиёрӣ)';
+
+  @override
+  String get durationLabelShort => 'Давомнокӣ';
+
+  @override
+  String get minutesSuffix => 'дақ';
 
   @override
   String get durationMustBePositive => 'Рақами мусбат ворид кунед';
@@ -434,7 +501,7 @@ class AppLocalizationsTg extends AppLocalizations {
       'Кӯшишҳо аз ҳад зиёданд. Баъдтар такрор кунед.';
 
   @override
-  String get eveningReminderTitle => 'Фардоро нақша кунед 🌙';
+  String get eveningReminderTitle => 'Фардоро нақша кунед';
 
   @override
   String get eveningReminderBody =>

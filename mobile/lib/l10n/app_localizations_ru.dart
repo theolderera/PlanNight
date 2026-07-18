@@ -72,6 +72,56 @@ class AppLocalizationsRu extends AppLocalizations {
   String get signUpFailed => 'Не удалось зарегистрироваться';
 
   @override
+  String greeting(String name) {
+    return 'Привет, $name';
+  }
+
+  @override
+  String get todaysProgress => 'Прогресс сегодня';
+
+  @override
+  String get keepGoing => 'Так держать!';
+
+  @override
+  String get allDone => 'Всё выполнено. Отличная работа!';
+
+  @override
+  String streakDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count дня',
+      many: '$count дней',
+      few: '$count дня',
+      one: '$count день',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tasksPlanned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count задачи',
+      many: '$count задач',
+      few: '$count задачи',
+      one: '$count задача',
+      zero: 'Пока ничего не запланировано',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get daySchedule => 'Расписание дня';
+
+  @override
+  String get now => 'СЕЙЧАС';
+
+  @override
+  String get about => 'О приложении';
+
+  @override
   String get today => 'Сегодня';
 
   @override
@@ -160,6 +210,18 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get change => 'Изменить';
+
+  @override
+  String get planTonight => 'Подготовь завтрашний день вечером';
+
+  @override
+  String get legendGoodDay => 'Хороший день';
+
+  @override
+  String get legendPartial => 'Частично';
+
+  @override
+  String get legendEmpty => 'Пусто';
 
   @override
   String get planningFor => 'Планируем на';
@@ -270,6 +332,9 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get themeMode => 'Режим отображения';
+
+  @override
   String get themeSystem => 'Системная';
 
   @override
@@ -333,6 +398,12 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get durationLabel => 'Длительность (минуты, необязательно)';
+
+  @override
+  String get durationLabelShort => 'Длительность';
+
+  @override
+  String get minutesSuffix => 'мин';
 
   @override
   String get durationMustBePositive => 'Введите положительное число';
@@ -430,7 +501,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get errorTooManyAttempts => 'Слишком много попыток. Повторите позже.';
 
   @override
-  String get eveningReminderTitle => 'Спланируйте завтрашний день 🌙';
+  String get eveningReminderTitle => 'Спланируйте завтрашний день';
 
   @override
   String get eveningReminderBody =>

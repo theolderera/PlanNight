@@ -4,7 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/date_utils.dart';
 import '../../core/l10n.dart';
 import '../../core/reminder_options.dart';
+import '../../core/theme.dart';
+import '../../core/widgets/app_widgets.dart';
 import '../../data/api/api_error.dart';
+import '../../data/models/category.dart';
 import '../../data/models/recurring_template.dart';
 import '../../data/models/task.dart';
 import '../../data/repositories/recurring_repository.dart';
@@ -31,12 +34,12 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
   TimeOfDay _startTime = const TimeOfDay(hour: 8, minute: 0);
   int _reminderLead = 0;
   bool _everyDay = true;
-  // API numbering: 0 = Sunday .. 6 = Saturday.
-  final Set<int> _days = {};
+  final Set<int> _days = {}; // API numbering: 0 = Sun .. 6 = Sat
   bool _saving = false;
 
-  /// Weekday chips in display order (Monday first), paired with the API's value
-  /// for that day. Dart's `DateTime.sunday` is 7, the API's Sunday is 0.
+  static const _priorityOrder = [Priority.low, Priority.medium, Priority.high];
+
+  /// Weekday chips in display order (Monday first), paired with the API value.
   static const _weekOrder = <(int apiValue, int dartWeekday)>[
     (1, DateTime.monday),
     (2, DateTime.tuesday),
@@ -118,122 +121,224 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final c = context.colors;
     final dates = DateLabels(l10n);
     final categories = ref.watch(categoriesStreamProvider).value ?? const [];
 
     return Scaffold(
       appBar: AppBar(
-          title: Text(widget.isEditing ? l10n.editTemplate : l10n.newTemplate)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(widget.isEditing ? l10n.editTemplate : l10n.newTemplate,
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+        centerTitle: true,
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
+            FieldLabel(l10n.titleLabel),
             TextFormField(
               controller: _title,
               textCapitalization: TextCapitalization.sentences,
-              decoration: InputDecoration(
-                  labelText: l10n.titleLabel, prefixIcon: const Icon(Icons.title)),
+              style: TextStyle(fontWeight: FontWeight.w600, color: c.ink),
+              decoration: const InputDecoration(prefixIcon: Icon(Icons.title_rounded)),
               validator: (v) => (v == null || v.trim().isEmpty) ? l10n.titleRequired : null,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 18),
+
+            FieldLabel(l10n.notesOptional),
             TextFormField(
               controller: _notes,
               minLines: 1,
               maxLines: 3,
-              decoration: InputDecoration(
-                  labelText: l10n.notesOptional, prefixIcon: const Icon(Icons.notes)),
+              style: TextStyle(fontWeight: FontWeight.w500, color: c.ink),
+              decoration: const InputDecoration(prefixIcon: Icon(Icons.notes_rounded)),
             ),
-            const SizedBox(height: 16),
-            Text(l10n.priority, style: Theme.of(context).textTheme.labelLarge),
-            const SizedBox(height: 6),
-            SegmentedButton<Priority>(
-              segments: [
-                for (final p in Priority.values)
-                  ButtonSegment(value: p, label: Text(p.label(l10n))),
-              ],
-              selected: {_priority},
-              onSelectionChanged: (s) => setState(() => _priority = s.first),
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String?>(
-              initialValue: _categoryId,
-              decoration: InputDecoration(
-                  labelText: l10n.category, prefixIcon: const Icon(Icons.label_outline)),
-              items: [
-                DropdownMenuItem(value: null, child: Text(l10n.categoryNone)),
-                for (final c in categories)
-                  DropdownMenuItem(
-                    value: c.id,
-                    child: Row(children: [
-                      Container(width: 12, height: 12, decoration: BoxDecoration(color: c.color, shape: BoxShape.circle)),
-                      const SizedBox(width: 8),
-                      Text(c.name),
-                    ]),
-                  ),
-              ],
-              onChanged: (v) => setState(() => _categoryId = v),
-            ),
-            const SizedBox(height: 8),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.schedule),
-              title: Text(l10n.startTimeLabel),
-              subtitle: Text(_startTime.format(context)),
+            const SizedBox(height: 18),
+
+            FieldLabel(l10n.startTimeLabel),
+            FieldTile(
+              leading: Icon(Icons.schedule_rounded, size: 18, color: c.accent),
+              trailing: Icon(Icons.chevron_right_rounded, color: c.textFaint),
               onTap: () async {
                 final picked = await showTimePicker(context: context, initialTime: _startTime);
                 if (picked != null) setState(() => _startTime = picked);
               },
+              child: Text(_startTime.format(context), style: context.mono(size: 15)),
             ),
-            const SizedBox(height: 8),
-            Text(l10n.repeats, style: Theme.of(context).textTheme.labelLarge),
-            const SizedBox(height: 6),
-            SegmentedButton<bool>(
-              segments: [
-                ButtonSegment(value: true, label: Text(l10n.everyDay)),
-                ButtonSegment(value: false, label: Text(l10n.specificDays)),
-              ],
-              selected: {_everyDay},
-              onSelectionChanged: (s) => setState(() => _everyDay = s.first),
+            const SizedBox(height: 18),
+
+            FieldLabel(l10n.category),
+            _TemplateCategoryChips(
+              categories: categories,
+              selectedId: _categoryId,
+              onSelect: (id) => setState(() => _categoryId = id),
+            ),
+            const SizedBox(height: 18),
+
+            FieldLabel(l10n.priority),
+            PillSegment(
+              options: [for (final p in _priorityOrder) p.label(l10n)],
+              selected: _priorityOrder.indexOf(_priority),
+              onSelect: (i) => setState(() => _priority = _priorityOrder[i]),
+            ),
+            const SizedBox(height: 18),
+
+            FieldLabel(l10n.repeats),
+            PillSegment(
+              options: [l10n.everyDay, l10n.specificDays],
+              selected: _everyDay ? 0 : 1,
+              onSelect: (i) => setState(() => _everyDay = i == 0),
             ),
             if (!_everyDay) ...[
               const SizedBox(height: 12),
               Wrap(
-                spacing: 6,
+                spacing: 8,
+                runSpacing: 8,
                 children: [
                   for (final (apiValue, dartWeekday) in _weekOrder)
-                    FilterChip(
-                      label: Text(dates.weekdayShort(dartWeekday)),
+                    _DayChip(
+                      label: dates.weekdayShort(dartWeekday),
                       selected: _days.contains(apiValue),
-                      onSelected: (sel) => setState(
-                          () => sel ? _days.add(apiValue) : _days.remove(apiValue)),
+                      onTap: () => setState(
+                          () => _days.contains(apiValue) ? _days.remove(apiValue) : _days.add(apiValue)),
                     ),
                 ],
               ),
             ],
-            const SizedBox(height: 12),
-            DropdownButtonFormField<int>(
-              initialValue: _reminderLead,
-              decoration: InputDecoration(
-                  labelText: l10n.reminderLabel,
-                  prefixIcon: const Icon(Icons.notifications_outlined)),
-              items: [
-                for (final minutes in reminderLeadMinutesOptions)
-                  DropdownMenuItem(
-                      value: minutes, child: Text(reminderLeadLabel(l10n, minutes))),
-              ],
-              onChanged: (v) => setState(() => _reminderLead = v ?? 0),
+            const SizedBox(height: 18),
+
+            FieldLabel(l10n.reminderLabel),
+            FieldTile(
+              leading: Icon(Icons.notifications_outlined, size: 18, color: c.accent),
+              trailing: Icon(Icons.chevron_right_rounded, color: c.textFaint),
+              onTap: _pickReminder,
+              child: Text(reminderLeadLabel(l10n, _reminderLead),
+                  style: TextStyle(fontWeight: FontWeight.w600, color: c.ink)),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
+
             FilledButton.icon(
               onPressed: _saving ? null : _save,
               icon: _saving
-                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Icon(Icons.check),
+                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.check_rounded),
               label: Text(widget.isEditing ? l10n.saveChanges : l10n.createTemplate),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Future<void> _pickReminder() async {
+    final l10n = context.l10n;
+    final picked = await showModalBottomSheet<int>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final m in reminderLeadMinutesOptions)
+              ListTile(
+                title: Text(reminderLeadLabel(l10n, m),
+                    style: TextStyle(
+                        fontFamily: AppFonts.sans,
+                        fontWeight: m == _reminderLead ? FontWeight.w700 : FontWeight.w500,
+                        color: m == _reminderLead ? context.colors.accent : context.colors.ink)),
+                trailing: m == _reminderLead ? Icon(Icons.check_rounded, color: context.colors.accent) : null,
+                onTap: () => Navigator.pop(ctx, m),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (picked != null) setState(() => _reminderLead = picked);
+  }
+}
+
+class _TemplateCategoryChips extends StatelessWidget {
+  const _TemplateCategoryChips({required this.categories, required this.selectedId, required this.onSelect});
+  final List<Category> categories;
+  final String? selectedId;
+  final void Function(String?) onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final c = context.colors;
+    Widget chip({required String label, required bool selected, required VoidCallback onTap, Color? dot}) {
+      return GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 140),
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+          decoration: BoxDecoration(
+            color: selected ? c.accentTint : c.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: selected ? c.accent : Colors.transparent, width: 1.5),
+            boxShadow: selected ? null : [BoxShadow(color: c.shadow, blurRadius: 6, offset: const Offset(0, 1), spreadRadius: -3)],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (dot != null) ...[
+                Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: dot)),
+                const SizedBox(width: 6),
+              ],
+              Text(label,
+                  style: TextStyle(
+                      fontFamily: AppFonts.sans, fontSize: 12.5, fontWeight: FontWeight.w600,
+                      color: selected ? c.ink : c.textSecondary)),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        chip(label: l10n.categoryNone, selected: selectedId == null, onTap: () => onSelect(null)),
+        for (final cat in categories)
+          chip(label: cat.name, dot: cat.color, selected: selectedId == cat.id, onTap: () => onSelect(cat.id)),
+      ],
+    );
+  }
+}
+
+class _DayChip extends StatelessWidget {
+  const _DayChip({required this.label, required this.selected, required this.onTap});
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 140),
+        width: 46,
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected ? c.accent : c.surface,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: selected ? null : [BoxShadow(color: c.shadow, blurRadius: 6, offset: const Offset(0, 1), spreadRadius: -3)],
+        ),
+        child: Text(label,
+            style: TextStyle(
+                fontFamily: AppFonts.sans, fontSize: 12, fontWeight: FontWeight.w700,
+                color: selected ? Colors.white : c.textSecondary)),
       ),
     );
   }

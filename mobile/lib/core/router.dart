@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'theme.dart';
+import 'widgets/app_widgets.dart';
 import '../data/models/recurring_template.dart';
 import '../data/models/task.dart';
 import '../data/models/user_profile.dart';
@@ -130,6 +132,23 @@ class _SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const AppLogo(size: 80, radius: 24),
+            const SizedBox(height: 24),
+            Text('PlanNight', style: Theme.of(context).textTheme.headlineSmall),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: 22,
+              height: 22,
+              child: CircularProgressIndicator(strokeWidth: 2, color: context.colors.accent),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/l10n.dart';
+import '../../core/theme.dart';
 
 /// The signed-in app shell: an IndexedStack of the five main tabs with a
 /// Material 3 NavigationBar. Each tab keeps its own navigation state.
@@ -16,32 +17,42 @@ class HomeShell extends StatelessWidget {
     AppLocalizations l10n,
   ) =>
       [
-        (icon: Icons.today_outlined, selected: Icons.today, label: l10n.navToday),
-        (icon: Icons.event_note_outlined, selected: Icons.event_note, label: l10n.navPlan),
-        (icon: Icons.insights_outlined, selected: Icons.insights, label: l10n.navStats),
-        (icon: Icons.calendar_month_outlined, selected: Icons.calendar_month, label: l10n.navHistory),
-        (icon: Icons.settings_outlined, selected: Icons.settings, label: l10n.navSettings),
+        (icon: Icons.today_outlined, selected: Icons.today_rounded, label: l10n.navToday),
+        (icon: Icons.event_note_outlined, selected: Icons.event_note_rounded, label: l10n.navPlan),
+        (icon: Icons.bar_chart_outlined, selected: Icons.bar_chart_rounded, label: l10n.navStats),
+        (icon: Icons.history_outlined, selected: Icons.history_rounded, label: l10n.navHistory),
+        (icon: Icons.settings_outlined, selected: Icons.settings_rounded, label: l10n.navSettings),
       ];
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: (index) => navigationShell.goBranch(
-          index,
-          // Tapping the active tab again pops it to its root.
-          initialLocation: index == navigationShell.currentIndex,
+      bottomNavigationBar: DecoratedBox(
+        decoration: BoxDecoration(
+          color: c.paper,
+          border: Border(top: BorderSide(color: c.divider)),
         ),
-        destinations: [
-          for (final d in _destinations(context.l10n))
-            NavigationDestination(
-              icon: Icon(d.icon),
-              selectedIcon: Icon(d.selected),
-              label: d.label,
+        child: SafeArea(
+          top: false,
+          child: NavigationBar(
+            selectedIndex: navigationShell.currentIndex,
+            onDestinationSelected: (index) => navigationShell.goBranch(
+              index,
+              // Tapping the active tab again pops it to its root.
+              initialLocation: index == navigationShell.currentIndex,
             ),
-        ],
+            destinations: [
+              for (final d in _destinations(context.l10n))
+                NavigationDestination(
+                  icon: Icon(d.icon),
+                  selectedIcon: Icon(d.selected),
+                  label: d.label,
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }

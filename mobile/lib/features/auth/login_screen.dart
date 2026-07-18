@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/l10n.dart';
 import '../../core/router.dart';
+import '../../core/theme.dart';
+import '../../core/widgets/app_widgets.dart';
 import '../../core/widgets/error_banner.dart';
 import '../../data/api/api_error.dart';
 import '../../data/repositories/auth_repository.dart';
@@ -56,51 +58,55 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final c = context.colors;
     final l10n = context.l10n;
     return Scaffold(
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
+              constraints: const BoxConstraints(maxWidth: 440),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Icon(Icons.nightlight_round,
-                        size: 56, color: theme.colorScheme.primary),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: AppLogo(size: 72),
+                    ),
+                    const SizedBox(height: 24),
                     Text('PlanNight',
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.headlineMedium
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4),
+                        style: theme.textTheme.displayMedium),
+                    const SizedBox(height: 8),
                     Text(l10n.appTagline,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant)),
+                        style: theme.textTheme.bodyLarge?.copyWith(color: c.textSecondary)),
                     const SizedBox(height: 32),
+
+                    FieldLabel(l10n.emailLabel),
                     TextFormField(
                       controller: _email,
                       keyboardType: TextInputType.emailAddress,
                       autofillHints: const [AutofillHints.email],
-                      decoration: InputDecoration(
-                        labelText: l10n.emailLabel,
-                        prefixIcon: const Icon(Icons.mail_outline),
+                      style: TextStyle(fontWeight: FontWeight.w600, color: c.ink),
+                      decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.mail_outline_rounded),
                       ),
                       validator: (v) =>
                           (v == null || !v.contains('@')) ? l10n.validEmailRequired : null,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
+
+                    FieldLabel(l10n.passwordLabel),
                     TextFormField(
                       controller: _password,
                       obscureText: _obscure,
                       autofillHints: const [AutofillHints.password],
+                      style: TextStyle(fontWeight: FontWeight.w600, color: c.ink),
                       decoration: InputDecoration(
-                        labelText: l10n.passwordLabel,
-                        prefixIcon: const Icon(Icons.lock_outline),
+                        prefixIcon: const Icon(Icons.lock_outline_rounded),
                         suffixIcon: IconButton(
                           icon: Icon(_obscure
                               ? Icons.visibility_outlined
@@ -112,26 +118,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           (v == null || v.isEmpty) ? l10n.passwordRequired : null,
                       onFieldSubmitted: (_) => _submit(),
                     ),
+
                     if (_error != null) ...[
                       const SizedBox(height: 16),
                       ErrorBanner(_error!),
                     ],
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 28),
+
                     FilledButton(
                       onPressed: _submitting ? null : _submit,
                       child: _submitting
                           ? const SizedBox(
                               height: 22,
                               width: 22,
-                              child: CircularProgressIndicator(strokeWidth: 2))
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                           : Text(l10n.logIn),
                     ),
-                    const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: _submitting
-                          ? null
-                          : () => context.push(Routes.register),
-                      child: Text(l10n.noAccountSignUp),
+                    const SizedBox(height: 16),
+                    Center(
+                      child: TextButton(
+                        onPressed: _submitting ? null : () => context.push(Routes.register),
+                        child: Text(l10n.noAccountSignUp),
+                      ),
                     ),
                   ],
                 ),
@@ -143,3 +151,4 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 }
+

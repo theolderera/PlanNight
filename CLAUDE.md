@@ -67,6 +67,12 @@ dart run build_runner build       # only after editing lib/data/local/database.d
 6. Client generates task/category/template UUIDs; creates are idempotent
    (`ON CONFLICT (id) DO NOTHING` + fetch-existing).
 7. Keep `l10n_untranslated.json` equal to `{}` — every ARB key exists in en+ru+tg.
+7a. **Design system is law** (`core/theme.dart` + `core/widgets/app_widgets.dart`,
+   "Daylight/Nocturne"): colours only from `context.colors` (`AppColors`), text
+   from the `TextTheme` or `context.mono`, layout from the shared widgets
+   (`SurfaceCard`, `PillSegment`, `FieldTile`, `AppLogo`, `ProgressRing`, …).
+   Two fonts only (PlusJakartaSans + SpaceGrotesk). **No emoji anywhere** — use
+   Material rounded/outlined icons. See docs/MOBILE.md "Design system".
 8. Pinned deps (`drift 2.33.0` pair, `sqlparser 0.44.0` override, `intl: any`)
    — see `mobile/NOTES.md` before touching pubspec.
 

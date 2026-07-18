@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../theme.dart';
+
 /// A centred icon + message used for empty lists and "nothing here yet" states.
+/// The icon sits in a soft tinted circle so empty screens still feel designed.
 class EmptyState extends StatelessWidget {
   const EmptyState({
     super.key,
@@ -18,27 +21,34 @@ class EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final c = context.colors;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 64, color: theme.colorScheme.outline),
-            const SizedBox(height: 16),
+            Container(
+              width: 84,
+              height: 84,
+              decoration: BoxDecoration(
+                color: c.accentTint,
+                borderRadius: BorderRadius.circular(26),
+              ),
+              child: Icon(icon, size: 38, color: c.accent),
+            ),
+            const SizedBox(height: 20),
             Text(title,
                 textAlign: TextAlign.center,
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w600)),
+                style: theme.textTheme.titleMedium),
             if (message != null) ...[
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               Text(message!,
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                  style: theme.textTheme.bodyMedium?.copyWith(color: c.textMuted)),
             ],
             if (action != null) ...[
-              const SizedBox(height: 20),
+              const SizedBox(height: 22),
               action!,
             ],
           ],
