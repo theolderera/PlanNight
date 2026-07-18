@@ -49,7 +49,7 @@ class TaskTile extends ConsumerWidget {
       _ => time,
     };
 
-    return Card(
+    final card = Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -122,6 +122,78 @@ class TaskTile extends ConsumerWidget {
               _TaskMenu(task: task, repo: repo),
           ],
         ),
+      ),
+    );
+
+    if (readOnly) return card;
+
+    // Swipe shortcuts for the two most frequent actions. `confirmDismiss`
+    // performs the action and returns false, so the tile is never removed from
+    // the tree — the optimistic cache write re-renders it in its new state
+    // (and a second swipe undoes, since both actions toggle).
+    return Dismissible(
+      key: ValueKey('swipe-${task.id}'),
+      direction: DismissDirection.horizontal,
+      confirmDismiss: (direction) async {
+        if (direction == DismissDirection.startToEnd) {
+          await repo.setStatus(
+              task, isDone ? TaskStatus.planned : TaskStatus.completed);
+        } else {
+          await repo.setStatus(
+              task, isSkipped ? TaskStatus.planned : TaskStatus.skipped);
+        }
+        return false;
+      },
+      background: _SwipeBackground(
+        alignment: Alignment.centerLeft,
+        color: scheme.primary,
+        icon: isDone ? Icons.undo : Icons.check_circle_outline,
+        label: isDone ? l10n.markNotDone : l10n.markDone,
+      ),
+      secondaryBackground: _SwipeBackground(
+        alignment: Alignment.centerRight,
+        color: scheme.error,
+        icon: isSkipped ? Icons.undo : Icons.cancel_outlined,
+        label: l10n.skip,
+      ),
+      child: card,
+    );
+  }
+}
+
+/// The coloured strip revealed behind a task while swiping.
+class _SwipeBackground extends StatelessWidget {
+  const _SwipeBackground({
+    required this.alignment,
+    required this.color,
+    required this.icon,
+    required this.label,
+  });
+
+  final Alignment alignment;
+  final Color color;
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      alignment: alignment,
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white),
+          const SizedBox(width: 8),
+          Text(label,
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.w600)),
+        ],
       ),
     );
   }

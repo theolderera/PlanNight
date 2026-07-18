@@ -4,42 +4,29 @@
 > (user value × risk reduction) / effort. Effort: S < ½ day · M ≈ 1–2 days ·
 > L ≈ a week. Check items off (and prune) as they land.
 
-## P0 — security & trust (do before inviting any real users)
+## ✅ Done (2026-07-18 session)
 
-1. **HTTPS** (M). Credentials and JWTs currently cross the network in
-   cleartext to `91.227.40.11:8080`. Free subdomain (DuckDNS) → host nginx
-   `server_name` block proxying to 127.0.0.1:8080 (`deploy/nginx.conf.example`
-   is ready) → certbot. Then: rebuild APK with `https://…/api`, drop the server
-   IP from the cleartext allowlist, and turn off port 8080's public exposure
-   (bind 127.0.0.1). *Care: nginx :80 is shared with storeos — add a server
-   block, don't replace config.*
-2. **Refresh-token revocation** (M). Tokens are stateless: logout/theft cannot
-   be invalidated server-side for up to 30 days. Add `refresh_tokens` table
-   (token-id, user, expiry, revoked) — the `/auth/refresh` service already has
-   the seam (its doc comment anticipates this). Rotate on use, revoke on
-   logout, "log out everywhere" becomes possible.
+- ~~**HTTPS**~~ — live at `https://plannight.91-227-40-11.sslip.io` (sslip.io
+  wildcard DNS + certbot, auto-renew; API bound to loopback behind nginx).
+- ~~**Refresh-token rotation & revocation**~~ — migration 003, `/auth/logout`,
+  rotation on refresh, mobile best-effort server logout.
+- ~~**Real release keystore**~~ — `upload-keystore.jks` + `key.properties`
+  (git-ignored, **back them up**); debug fallback for fresh clones.
+- ~~**DB backups**~~ — nightly 03:17 pg_dump cron, 14-day retention, verified.
+- ~~**Evening "plan tomorrow" reminder**~~ — daily nudge (default 21:00,
+  per-user prefs via migration 004, syncs), deep-links to /plan, ×3 languages.
+- ~~**Swipe gestures**~~ — right = done/undone, left = skip/unskip.
+
+## P0 — security & trust (remaining)
+
 3. **Backend test suite + CI** (M). Zero backend tests today; every fix is
    hand-verified with curl. supertest + a disposable Postgres (compose) over:
-   auth flows (409/401/timing dummy), task CRUD + ownership isolation
-   (user A cannot touch user B), reschedule transaction, idempotent
+   auth flows (409/401/timing dummy, rotation/logout), task CRUD + ownership
+   isolation (user A cannot touch user B), reschedule transaction, idempotent
    create/generate, sync deltas incl. soft-deletes, stats/streak edge days.
    GitHub Action: backend tests + `flutter analyze` + `flutter test`.
-4. **Real release keystore** (S). APK signs with the debug key — any Play
-   upload or update-in-place across machines will break. Generate an upload
-   keystore + `key.properties` (git-ignored), wire `signingConfigs.release`.
-5. **DB backups** (S). MVPS auto-backup is whole-VPS only. Nightly
-   `pg_dump | gzip` cron inside the db container volume + copy off-box (even
-   to the dev PC via scp). Test one restore.
 
 ## P1 — product polish (biggest daily-use wins)
-
-6. **Evening "plan tomorrow" reminder** (S). The product's core ritual has no
-   nudge. One daily local notification (configurable time, default ~21:00,
-   off-switch in Settings) deep-linking to /plan. Highest value-per-line in
-   the backlog.
-7. **Swipe gestures on tasks** (S). `Dismissible` on TaskTile: swipe right =
-   done/undone, left = skip. Check-off is the most frequent action; today it
-   needs a precise icon tap.
 8. **Drag-to-reorder within a day** (M). `sort_order` exists end-to-end but no
    UI sets it — `ReorderableListView` on Today/Plan, persist via the normal
    update path (works offline for free).

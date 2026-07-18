@@ -431,6 +431,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'Too many attempts. Please try again later.';
 
   @override
+  String get eveningReminderTitle => 'Plan tomorrow 🌙';
+
+  @override
+  String get eveningReminderBody =>
+      'A few minutes tonight sets up a winning day tomorrow.';
+
+  @override
+  String get eveningReminderTitle2 => 'Evening planning reminder';
+
+  @override
+  String get eveningReminderSubtitle =>
+      'A daily nudge to plan tomorrow\'s tasks';
+
+  @override
+  String get eveningReminderTimeLabel => 'Reminder time';
+
+  @override
   String get notificationChannelName => 'Task reminders';
 
   @override

@@ -31,5 +31,7 @@ final notificationSchedulerProvider = Provider<void>((ref) {
     enabled: user.notificationsEnabled,
     defaultLead: user.reminderLeadMinutes,
     languageCode: user.language,
+    eveningReminderEnabled: user.eveningReminderEnabled,
+    eveningReminderTime: user.eveningReminderTime,
   );
 });

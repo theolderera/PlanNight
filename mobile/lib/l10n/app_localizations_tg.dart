@@ -434,6 +434,23 @@ class AppLocalizationsTg extends AppLocalizations {
       'Кӯшишҳо аз ҳад зиёданд. Баъдтар такрор кунед.';
 
   @override
+  String get eveningReminderTitle => 'Фардоро нақша кунед 🌙';
+
+  @override
+  String get eveningReminderBody =>
+      'Якчанд дақиқаи имшаб — ва фардо аз рӯи нақша мегузарад.';
+
+  @override
+  String get eveningReminderTitle2 => 'Ёдоварии шабонаи нақшагузорӣ';
+
+  @override
+  String get eveningReminderSubtitle =>
+      'Ёдоварии ҳаррӯза барои нақша кардани вазифаҳои фардо';
+
+  @override
+  String get eveningReminderTimeLabel => 'Вақти ёдоварӣ';
+
+  @override
   String get notificationChannelName => 'Ёдоварии вазифаҳо';
 
   @override

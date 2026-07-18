@@ -165,6 +165,12 @@
   "errorSameDate": "Задача уже запланирована на эту дату.",
   "errorTooManyAttempts": "Слишком много попыток. Повторите позже.",
 
+  "eveningReminderTitle": "Спланируйте завтрашний день 🌙",
+  "eveningReminderBody": "Несколько минут вечером — и завтра пройдёт по плану.",
+  "eveningReminderTitle2": "Вечернее напоминание о планировании",
+  "eveningReminderSubtitle": "Ежедневное напоминание спланировать задачи на завтра",
+  "eveningReminderTimeLabel": "Время напоминания",
+
   "notificationChannelName": "Напоминания о задачах",
   "notificationChannelDescription": "Напоминания о запланированных задачах",
   "notificationScheduledFor": "Запланировано на {time}",

@@ -99,6 +99,39 @@ class SettingsScreen extends ConsumerWidget {
             value: user.notificationsEnabled,
             onChanged: (v) => controller.updateSettings(notificationsEnabled: v),
           ),
+          // The evening "plan tomorrow" nudge — the app's core ritual. Rides
+          // the master switch above: master off ⇒ this one is disabled too.
+          SwitchListTile(
+            secondary: const Icon(Icons.nightlight_outlined),
+            title: Text(l10n.eveningReminderTitle2),
+            subtitle: Text(l10n.eveningReminderSubtitle),
+            value: user.eveningReminderEnabled,
+            onChanged: user.notificationsEnabled
+                ? (v) => controller.updateSettings(eveningReminderEnabled: v)
+                : null,
+          ),
+          ListTile(
+            enabled: user.notificationsEnabled && user.eveningReminderEnabled,
+            leading: const Icon(Icons.bedtime_outlined),
+            title: Text(l10n.eveningReminderTimeLabel),
+            subtitle: Text(_formatHHmm(context, user.eveningReminderTime)),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () async {
+              final parts = user.eveningReminderTime.split(':');
+              final picked = await showTimePicker(
+                context: context,
+                initialTime: TimeOfDay(
+                  hour: int.tryParse(parts[0]) ?? 21,
+                  minute: int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0,
+                ),
+              );
+              if (picked != null) {
+                final hhmm =
+                    '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                controller.updateSettings(eveningReminderTime: hhmm);
+              }
+            },
+          ),
           ListTile(
             enabled: user.notificationsEnabled,
             leading: const Icon(Icons.schedule),
@@ -143,6 +176,15 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// 'HH:MM' → device-formatted time (12/24h). Falls back to the raw string.
+  String _formatHHmm(BuildContext context, String hhmm) {
+    final parts = hhmm.split(':');
+    final h = int.tryParse(parts[0]);
+    final m = int.tryParse(parts.length > 1 ? parts[1] : '');
+    if (h == null || m == null) return hhmm;
+    return TimeOfDay(hour: h, minute: m).format(context);
   }
 
   Widget _sectionHeader(BuildContext context, String title) => Padding(

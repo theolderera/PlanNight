@@ -189,6 +189,14 @@
   "errorSameDate": "The task is already scheduled on that date.",
   "errorTooManyAttempts": "Too many attempts. Please try again later.",
 
+  "eveningReminderTitle": "Plan tomorrow 🌙",
+  "@eveningReminderTitle": { "description": "Title of the daily evening notification nudging the user to plan the next day." },
+  "eveningReminderBody": "A few minutes tonight sets up a winning day tomorrow.",
+  "eveningReminderTitle2": "Evening planning reminder",
+  "@eveningReminderTitle2": { "description": "Settings switch label for the daily evening nudge." },
+  "eveningReminderSubtitle": "A daily nudge to plan tomorrow's tasks",
+  "eveningReminderTimeLabel": "Reminder time",
+
   "notificationChannelName": "Task reminders",
   "notificationChannelDescription": "Reminders for your scheduled tasks",
   "notificationScheduledFor": "Scheduled for {time}",

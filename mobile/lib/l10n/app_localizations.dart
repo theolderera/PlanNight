@@ -886,6 +886,36 @@ abstract class AppLocalizations {
   /// **'Too many attempts. Please try again later.'**
   String get errorTooManyAttempts;
 
+  /// Title of the daily evening notification nudging the user to plan the next day.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan tomorrow 🌙'**
+  String get eveningReminderTitle;
+
+  /// No description provided for @eveningReminderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A few minutes tonight sets up a winning day tomorrow.'**
+  String get eveningReminderBody;
+
+  /// Settings switch label for the daily evening nudge.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening planning reminder'**
+  String get eveningReminderTitle2;
+
+  /// No description provided for @eveningReminderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A daily nudge to plan tomorrow\'s tasks'**
+  String get eveningReminderSubtitle;
+
+  /// No description provided for @eveningReminderTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder time'**
+  String get eveningReminderTimeLabel;
+
   /// No description provided for @notificationChannelName.
   ///
   /// In en, this message translates to:

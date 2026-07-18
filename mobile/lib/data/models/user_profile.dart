@@ -9,6 +9,8 @@ class UserProfile {
     required this.streakThresholdPct,
     required this.notificationsEnabled,
     required this.reminderLeadMinutes,
+    required this.eveningReminderEnabled,
+    required this.eveningReminderTime,
   });
 
   final String id;
@@ -25,6 +27,10 @@ class UserProfile {
   final bool notificationsEnabled;
   final int reminderLeadMinutes;
 
+  /// The daily "plan tomorrow" nudge: on/off and its 'HH:MM' wall-clock time.
+  final bool eveningReminderEnabled;
+  final String eveningReminderTime;
+
   factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
         id: json['id'] as String,
         email: json['email'] as String,
@@ -34,6 +40,8 @@ class UserProfile {
         streakThresholdPct: (json['streakThresholdPct'] as num?)?.toInt() ?? 80,
         notificationsEnabled: json['notificationsEnabled'] as bool? ?? true,
         reminderLeadMinutes: (json['reminderLeadMinutes'] as num?)?.toInt() ?? 0,
+        eveningReminderEnabled: json['eveningReminderEnabled'] as bool? ?? true,
+        eveningReminderTime: json['eveningReminderTime'] as String? ?? '21:00',
       );
 
   UserProfile copyWith({
@@ -43,6 +51,8 @@ class UserProfile {
     int? streakThresholdPct,
     bool? notificationsEnabled,
     int? reminderLeadMinutes,
+    bool? eveningReminderEnabled,
+    String? eveningReminderTime,
   }) =>
       UserProfile(
         id: id,
@@ -53,5 +63,8 @@ class UserProfile {
         streakThresholdPct: streakThresholdPct ?? this.streakThresholdPct,
         notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
         reminderLeadMinutes: reminderLeadMinutes ?? this.reminderLeadMinutes,
+        eveningReminderEnabled:
+            eveningReminderEnabled ?? this.eveningReminderEnabled,
+        eveningReminderTime: eveningReminderTime ?? this.eveningReminderTime,
       );
 }

@@ -49,7 +49,21 @@ class AuthRepository {
     return UserProfile.fromJson((res.data as Map)['user'] as Map<String, dynamic>);
   }
 
-  Future<void> logout() => _tokens.clear();
+  /// Sign out. Best-effort revokes the refresh token server-side (so a synced
+  /// copy of it can't mint new sessions), then clears local tokens. The server
+  /// call must never block logout: signing out while offline has to work.
+  Future<void> logout() async {
+    final refresh = await _tokens.readRefresh();
+    if (refresh != null) {
+      try {
+        await _client.dio.post('/auth/logout', data: {'refreshToken': refresh});
+      } catch (_) {
+        // Offline or server error — local sign-out still proceeds; the token
+        // dies on its own at expiry.
+      }
+    }
+    await _tokens.clear();
+  }
 
   Future<UserProfile> _handleAuthResponse(Map<String, dynamic> data) async {
     await _tokens.save(

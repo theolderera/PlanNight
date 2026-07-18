@@ -8,13 +8,14 @@
 | Thing | Value |
 |---|---|
 | Server | MVPS VPS-148541, Ubuntu 24.04, 1 core / 2 GB / 25 GB, IP **91.227.40.11** |
-| API | `http://91.227.40.11:8080/api` · health `http://91.227.40.11:8080/health` |
+| API (public) | **`https://plannight.91-227-40-11.sslip.io/api`** · health `…/health`. sslip.io is wildcard DNS (name contains the IP) — no registrar account involved. HTTP :80 301-redirects to HTTPS. |
+| TLS | Let's Encrypt via `certbot --nginx`; site `/etc/nginx/sites-enabled/plannight`; auto-renew `certbot.timer` (verify: `systemctl list-timers certbot*`) |
 | Code | `/opt/plannight` (backend/, docker-compose.yml, deploy/, .env, backend/.env) |
-| Containers | plannight-api-1 (0.0.0.0:8080→4000), plannight-db-1 (**127.0.0.1**:5433→5432, hidden from internet) |
+| Containers | plannight-api-1 (**127.0.0.1**:8080→4000 — loopback-only, `API_BIND=127.0.0.1` in server .env; only nginx reaches it), plannight-db-1 (**127.0.0.1**:5433→5432) |
 | Restart | `unless-stopped` + docker enabled ⇒ survives reboot |
-| TLS | **None yet** — plain HTTP to an IP. Top improvement item. |
-| Cohabitant | "storeos" project owns ports **3000 and 4000** + host nginx :80 + native Postgres 127.0.0.1:5432. **Never touch.** No ufw on the box — any published port is instantly public. |
-| SSH | key-only (ed25519 deploy key in root's authorized_keys). Panel root password was reset once for bootstrap, then removed from disk. New agent session without the key: MVPS panel → REBOOT → "Attempt to reset" → new password → install a fresh key. |
+| Backups | nightly 03:17 root-cron `/opt/plannight/backup.sh` → pg_dump gzip in `/opt/plannight/backups/`, 14-day retention, log `backups/backup.log`. Restore: `zcat FILE \| docker exec -i plannight-db-1 psql -U plannight plannight` (into an EMPTY db). |
+| Cohabitant | "storeos" project owns ports **3000 and 4000** + host nginx :80 (site `crm`, server_name = the bare IP) + native Postgres 127.0.0.1:5432. **Never touch.** No ufw on the box — any published port is instantly public. |
+| SSH | key-only; deploy key at `C:\Users\ahmad\.ssh\plannight_deploy_key` on the dev PC (ed25519, in root's authorized_keys). Panel root password was reset once for bootstrap, then removed from disk. If the key is ever lost: MVPS panel → REBOOT → "Attempt to reset" → new password → install a fresh key. |
 | Server accounts | `ahmad@plannight.app` / `planNight2026` (language tg) — the owner's. Local `test@plannight.local` does NOT exist on the server. |
 
 ### Redeploy after code changes
@@ -68,17 +69,26 @@ flutter build apk --release --dart-define=API_BASE_URL=<CHOICE>/api
 
 | API_BASE_URL | Use case |
 |---|---|
-| `http://91.227.40.11:8080/api` | **production** — works from any network; ship this one |
+| `https://plannight.91-227-40-11.sslip.io/api` | **production** — works from any network; ship this one |
 | `http://localhost:4000/api` | USB + `adb reverse tcp:4000 tcp:4000` (immune to Wi-Fi/IP churn; reverse must be re-run after unplug/reboot) |
 | `http://<PC-LAN-IP>:4000/api` | phone on same Wi-Fi — fragile, see below |
 | `http://10.0.2.2:4000/api` | Android emulator only (the compiled-in default) |
 
+**Signing**: release builds sign with `mobile/android/app/upload-keystore.jks`
+via `mobile/android/key.properties` — both git-ignored, **BACK THEM UP**
+(losing the keystore = losing the ability to update the app). A clone without
+them falls back to debug signing. Debug-signed and release-signed APKs have
+different signatures: switching requires **uninstalling** the old app first
+("App not installed" otherwise). Verify a build's signer:
+`apksigner verify --print-certs PlanNight.apk` (needs JAVA_HOME) — expect
+`CN=PlanNight`, not Android Debug.
+
 **Cleartext allowlist** — Android 9+ blocks plain HTTP. Every non-HTTPS host
 must be listed (literal hosts only, no wildcards) in
 `mobile/android/app/src/main/res/xml/network_security_config.xml`, currently:
-10.0.2.2, localhost, 192.168.28.137, 192.168.31.137, 91.227.40.11. New host ⇒
-add + rebuild. XML comments must not contain `--` (breaks the resource build).
-Once HTTPS exists, the server entry goes away entirely.
+10.0.2.2, localhost, 192.168.28.137, 192.168.31.137. Production is HTTPS and
+needs no entry. New host ⇒ add + rebuild. XML comments must not contain `--`
+(breaks the resource build).
 
 **Verify what an APK actually points at** (dart-defines are compiled into
 `lib/*/libapp.so`; note Cyrillic strings sit there as UTF-16, so a naive UTF-8

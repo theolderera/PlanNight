@@ -25,5 +25,8 @@ const authLimiter = rateLimit({
 router.post('/register', authLimiter, validate({ body: registerSchema }), asyncHandler(controller.register));
 router.post('/login', authLimiter, validate({ body: loginSchema }), asyncHandler(controller.login));
 router.post('/refresh', authLimiter, validate({ body: refreshSchema }), asyncHandler(controller.refresh));
+// Revokes the presented refresh token server-side (rotation table), so a
+// logged-out session can't mint new access tokens. Always 204 (idempotent).
+router.post('/logout', authLimiter, validate({ body: refreshSchema }), asyncHandler(controller.logout));
 
 export default router;

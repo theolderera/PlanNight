@@ -53,6 +53,8 @@ class AuthController extends AsyncNotifier<UserProfile?> {
     int? streakThresholdPct,
     bool? notificationsEnabled,
     int? reminderLeadMinutes,
+    bool? eveningReminderEnabled,
+    String? eveningReminderTime,
     String? timezone,
   }) async {
     final current = state.value;
@@ -64,6 +66,8 @@ class AuthController extends AsyncNotifier<UserProfile?> {
       streakThresholdPct: streakThresholdPct,
       notificationsEnabled: notificationsEnabled,
       reminderLeadMinutes: reminderLeadMinutes,
+      eveningReminderEnabled: eveningReminderEnabled,
+      eveningReminderTime: eveningReminderTime,
       timezone: timezone,
     ));
 
@@ -74,6 +78,8 @@ class AuthController extends AsyncNotifier<UserProfile?> {
       'streakThresholdPct': ?streakThresholdPct,
       'notificationsEnabled': ?notificationsEnabled,
       'reminderLeadMinutes': ?reminderLeadMinutes,
+      'eveningReminderEnabled': ?eveningReminderEnabled,
+      'eveningReminderTime': ?eveningReminderTime,
       'timezone': ?timezone,
     };
     await ref.read(databaseProvider).enqueue(OutboxEntriesCompanion.insert(

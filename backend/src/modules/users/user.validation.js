@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { timeString } from '../../common/schemas.js';
 
 /** UI languages the app ships translations for. */
 export const supportedLanguages = ['en', 'ru', 'tg'];
@@ -12,6 +13,8 @@ export const updateMeSchema = z
     streakThresholdPct: z.number().int().min(1).max(100).optional(),
     notificationsEnabled: z.boolean().optional(),
     reminderLeadMinutes: z.number().int().min(0).max(1440).optional(),
+    eveningReminderEnabled: z.boolean().optional(),
+    eveningReminderTime: timeString.optional(),
   })
   .refine((obj) => Object.keys(obj).length > 0, {
     message: 'Provide at least one field to update.',

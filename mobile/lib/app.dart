@@ -30,11 +30,15 @@ class _PlanNightAppState extends ConsumerState<PlanNightApp> {
       }
     });
 
-    // Route to the relevant day when a notification is tapped. Registered once:
+    // Route when a notification is tapped: the evening "plan tomorrow" nudge
+    // opens the Plan screen; task reminders open Today. Registered once:
     // build() runs on every rebuild, and re-assigning a static callback there
     // was pointless work (and a trap for anyone adding state to the closure).
     NotificationService.onSelectPayload = (payload) {
-      ref.read(routerProvider).go(Routes.today);
+      final router = ref.read(routerProvider);
+      router.go(payload == NotificationService.planTomorrowPayload
+          ? Routes.plan
+          : Routes.today);
     };
   }
 

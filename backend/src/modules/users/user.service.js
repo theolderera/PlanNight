@@ -20,6 +20,8 @@ const UPDATABLE_COLUMNS = {
   streakThresholdPct: 'streak_threshold_pct',
   notificationsEnabled: 'notifications_enabled',
   reminderLeadMinutes: 'reminder_lead_minutes',
+  eveningReminderEnabled: 'evening_reminder_enabled',
+  eveningReminderTime: 'evening_reminder_time',
 };
 
 export async function updateSettings(userId, patch) {

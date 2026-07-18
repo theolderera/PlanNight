@@ -19,10 +19,20 @@ export function signAccessToken(userId) {
   });
 }
 
-export function signRefreshToken(userId) {
-  return jwt.sign({ sub: userId, type: 'refresh' }, env.JWT_REFRESH_SECRET, {
+/**
+ * Sign a refresh token carrying a `jti` (token id). The jti is what the
+ * `refresh_tokens` table tracks, enabling rotation and revocation — a refresh
+ * token without a matching live row is rejected even if its signature is valid.
+ */
+export function signRefreshToken(userId, jti) {
+  return jwt.sign({ sub: userId, type: 'refresh', jti }, env.JWT_REFRESH_SECRET, {
     expiresIn: env.JWT_REFRESH_EXPIRES_IN,
   });
+}
+
+/** Read a token's payload WITHOUT verifying — for expiry bookkeeping only. */
+export function decodeToken(token) {
+  return jwt.decode(token);
 }
 
 /** Verify an access token, returning its payload or throwing. */
@@ -39,10 +49,5 @@ export function verifyRefreshToken(token) {
   return payload;
 }
 
-/** Issue a fresh access + refresh pair for a user id. */
-export function issueTokenPair(userId) {
-  return {
-    accessToken: signAccessToken(userId),
-    refreshToken: signRefreshToken(userId),
-  };
-}
+// NOTE: pair issuing lives in auth.service (`issueTokens`) because a refresh
+// token is only valid together with its DB row — signing alone is not enough.

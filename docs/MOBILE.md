@@ -137,8 +137,8 @@ l10n/  app_en.arb (TEMPLATE with @metadata) · app_ru.arb · app_tg.arb ·
 
 APK: `flutter build apk --release --dart-define=API_BASE_URL=<url>/api` —
 wrong/missing define = app pointing at the emulator default; see
-[OPERATIONS.md](OPERATIONS.md) for URL choices and the cleartext allowlist.
-Pinned deps (`drift`/`drift_dev` 2.33.0 matched pair, `sqlparser 0.44.0`
-override, `intl: any` because flutter_localizations pins it exactly):
-rationale in `mobile/NOTES.md` — do not bump blindly. Release currently signs
-with the **debug keystore** (fine for testing, not for distribution).
+[OPERATIONS.md](OPERATIONS.md) for URL choices, the cleartext allowlist, and
+release signing (real keystore, git-ignored `key.properties`; debug fallback
+on a fresh clone). Pinned deps (`drift`/`drift_dev` 2.33.0 matched pair,
+`sqlparser 0.44.0` override, `intl: any` because flutter_localizations pins it
+exactly): rationale in `mobile/NOTES.md` — do not bump blindly.

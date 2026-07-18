@@ -136,8 +136,13 @@ All stats aggregate live from `tasks` (`stats.service.js`):
 ## 8. Auth
 
 - Access JWT (15 min) + refresh JWT (30 d), **different secrets**, a `type`
-  claim prevents cross-use. Stateless: no server-side session/revocation list
-  (a known gap — see IMPROVEMENTS).
+  claim prevents cross-use.
+- Refresh tokens are **stateful** (migration 003): each carries a `jti`
+  tracked in `refresh_tokens`. Refresh *rotates* (old row revoked atomically,
+  new pair issued); `POST /auth/logout` revokes, so signing out actually ends
+  the session server-side. Reuse of a rotated token → 401, deliberately
+  *without* a revoke-all cascade (a mobile client that lost the rotation
+  response would otherwise nuke its other devices).
 - bcryptjs (12 rounds). Login runs a real dummy-hash compare when the email is
   unknown to keep timing flat (user-enumeration defence).
 - Mobile: tokens in `flutter_secure_storage` (Android Keystore). Dio
@@ -159,11 +164,15 @@ into the cache immediately rather than waiting for the next pull.
 
 No push infrastructure. The device schedules exact local notifications
 (`flutter_local_notifications` + `timezone`) for the next 7 days of pending,
-timed tasks at `start_time − reminderLead`. The scheduler provider re-runs
+timed tasks at `start_time − reminderLead`, **plus one daily evening
+"plan tomorrow" nudge** (per-user time, default 21:00, prefs on the user row —
+migration 004 — so they sync; repeats via `matchDateTimeComponents: time`;
+fixed id −1, payload deep-links to /plan). The scheduler provider re-runs
 (cancel-all + reschedule, idempotent) whenever upcoming tasks or settings
 change, and is keyed to the user's `language` so pending reminders are
-rewritten when the language changes. Notification ids are `task.id.hashCode`
-(collision-tolerant: worst case one reminder overwrites another).
+rewritten when the language changes. Task notification ids are
+`task.id.hashCode & 0x7fffffff` (collision-tolerant: worst case one reminder
+overwrites another; never collides with the nudge's negative id).
 
 ## 11. Localization (en/ru/tg) — the two hard parts
 

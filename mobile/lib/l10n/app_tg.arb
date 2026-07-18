@@ -165,6 +165,12 @@
   "errorSameDate": "Вазифа аллакай ба ҳамин сана ба нақша гирифта шудааст.",
   "errorTooManyAttempts": "Кӯшишҳо аз ҳад зиёданд. Баъдтар такрор кунед.",
 
+  "eveningReminderTitle": "Фардоро нақша кунед 🌙",
+  "eveningReminderBody": "Якчанд дақиқаи имшаб — ва фардо аз рӯи нақша мегузарад.",
+  "eveningReminderTitle2": "Ёдоварии шабонаи нақшагузорӣ",
+  "eveningReminderSubtitle": "Ёдоварии ҳаррӯза барои нақша кардани вазифаҳои фардо",
+  "eveningReminderTimeLabel": "Вақти ёдоварӣ",
+
   "notificationChannelName": "Ёдоварии вазифаҳо",
   "notificationChannelDescription": "Ёдоварӣ барои вазифаҳои ба нақша гирифтаи шумо",
   "notificationScheduledFor": "Барои соати {time} ба нақша гирифта шудааст",

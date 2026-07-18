@@ -25,9 +25,11 @@ and current; only fall back to reading code for line-level detail):
 
 ## Environments (state as of 2026-07-18)
 
-- **Production**: LIVE on the user's MVPS VPS `91.227.40.11`, API on port
-  **8080** (plain HTTP — no domain/TLS yet), code at `/opt/plannight`.
-  Port 4000/3000 on that box belong to an unrelated "storeos" project — never touch.
+- **Production**: LIVE on the user's MVPS VPS `91.227.40.11`, code at
+  `/opt/plannight`. Public URL: **https://plannight.91-227-40-11.sslip.io**
+  (nginx + Let's Encrypt, auto-renewing; API container is loopback-only on
+  127.0.0.1:8080). Nightly pg_dump backups via cron. Ports 4000/3000 on that
+  box belong to an unrelated "storeos" project — never touch.
 - **Local dev**: `docker compose up -d` → API :4000, Postgres published on
   **5433** (native Postgres owns 5432 on this machine).
 - **GitHub**: `github.com/theolderera/PlanNight` (private), branch `main`.

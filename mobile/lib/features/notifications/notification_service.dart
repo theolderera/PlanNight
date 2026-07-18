@@ -18,9 +18,17 @@ class NotificationService {
 
   bool _inited = false;
 
-  /// Set by the app to handle a tapped notification. Receives the payload
-  /// ('YYYY-MM-DD|taskId').
+  /// Set by the app to handle a tapped notification. Receives the payload:
+  /// [planTomorrowPayload] for the evening nudge, 'YYYY-MM-DD|taskId' for a
+  /// task reminder.
   static void Function(String? payload)? onSelectPayload;
+
+  /// Payload of the evening "plan tomorrow" nudge — the app routes it to /plan.
+  static const planTomorrowPayload = 'plan-tomorrow';
+
+  /// Fixed id for the single daily evening nudge. Task ids are masked to 31
+  /// bits (always >= 0 stays possible), so a negative id can never collide.
+  static const _eveningReminderId = -1;
 
   static const _channelId = 'task_reminders';
 
@@ -77,8 +85,9 @@ class NotificationService {
         iOS: const DarwinNotificationDetails(),
       );
 
-  /// Cancel everything and re-schedule reminders for the given (upcoming) tasks.
-  /// Idempotent — call it whenever tasks or settings change.
+  /// Cancel everything and re-schedule all local notifications: per-task
+  /// reminders for the given (upcoming) tasks, plus the daily evening
+  /// "plan tomorrow" nudge. Idempotent — call whenever tasks/settings change.
   ///
   /// [languageCode] is the signed-in user's language: notifications are composed
   /// now but fire hours later, with no widget tree to read a locale from.
@@ -87,13 +96,22 @@ class NotificationService {
     required bool enabled,
     required int defaultLead,
     required String languageCode,
+    required bool eveningReminderEnabled,
+    required String eveningReminderTime,
   }) async {
     if (!_inited || kIsWeb) return;
     await _plugin.cancelAll();
-    if (!enabled) return;
 
     final l10n = l10nFor(languageCode);
     final details = _details(l10n);
+
+    // The evening nudge rides the master notifications switch too: "Task
+    // reminders: off" should mean a fully silent app.
+    if (enabled && eveningReminderEnabled) {
+      await _scheduleEveningReminder(l10n, details, eveningReminderTime);
+    }
+    if (!enabled) return;
+
     final now = tz.TZDateTime.now(tz.local);
 
     for (final t in tasks) {
@@ -113,6 +131,34 @@ class NotificationService {
         payload: '${Dates.iso(t.planDate)}|${t.id}',
       );
     }
+  }
+
+  /// Schedule the daily "plan tomorrow" nudge at the user's chosen wall-clock
+  /// time. `matchDateTimeComponents: time` makes it repeat every day at that
+  /// time; if today's slot already passed, the first fire is tomorrow.
+  Future<void> _scheduleEveningReminder(
+    AppLocalizations l10n,
+    NotificationDetails details,
+    String hhmm,
+  ) async {
+    final parts = hhmm.split(':');
+    final h = int.tryParse(parts[0]) ?? 21;
+    final m = int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0;
+
+    final now = tz.TZDateTime.now(tz.local);
+    var first = tz.TZDateTime(tz.local, now.year, now.month, now.day, h, m);
+    if (!first.isAfter(now)) first = first.add(const Duration(days: 1));
+
+    await _plugin.zonedSchedule(
+      id: _eveningReminderId,
+      title: l10n.eveningReminderTitle,
+      body: l10n.eveningReminderBody,
+      scheduledDate: first,
+      notificationDetails: details,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.time, // repeat daily
+      payload: planTomorrowPayload,
+    );
   }
 
   /// The local wall-clock instant a task's reminder should fire.

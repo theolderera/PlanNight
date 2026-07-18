@@ -430,6 +430,23 @@ class AppLocalizationsRu extends AppLocalizations {
   String get errorTooManyAttempts => 'Слишком много попыток. Повторите позже.';
 
   @override
+  String get eveningReminderTitle => 'Спланируйте завтрашний день 🌙';
+
+  @override
+  String get eveningReminderBody =>
+      'Несколько минут вечером — и завтра пройдёт по плану.';
+
+  @override
+  String get eveningReminderTitle2 => 'Вечернее напоминание о планировании';
+
+  @override
+  String get eveningReminderSubtitle =>
+      'Ежедневное напоминание спланировать задачи на завтра';
+
+  @override
+  String get eveningReminderTimeLabel => 'Время напоминания';
+
+  @override
   String get notificationChannelName => 'Напоминания о задачах';
 
   @override

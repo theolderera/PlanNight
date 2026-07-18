@@ -17,3 +17,8 @@ export async function refresh(req, res) {
   const { tokens } = await authService.refresh(req.body);
   res.json({ ...tokens });
 }
+
+export async function logout(req, res) {
+  await authService.logout(req.body);
+  res.status(204).send();
+}

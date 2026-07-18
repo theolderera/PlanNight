@@ -54,13 +54,14 @@ Base path `/api`; all routes except `/auth/*` require `Authorization: Bearer
 |---|---|---|
 | POST /register | `{email, password(8..128), timezone?, language?}` | 201 `{user, accessToken, refreshToken}`; 409 `EMAIL_TAKEN` |
 | POST /login | `{email, password}` | 200 same shape; 401 `BAD_CREDENTIALS` (flat timing) |
-| POST /refresh | `{refreshToken}` | 200 `{accessToken, refreshToken}` (new pair); 401 `REFRESH_INVALID` / `USER_GONE` |
+| POST /refresh | `{refreshToken}` | 200 `{accessToken, refreshToken}` — **rotates**: the presented token's `refresh_tokens` row is revoked atomically; reuse of a rotated/revoked/pre-migration (no-jti) token → 401 `REFRESH_INVALID` / `USER_GONE`. Deliberately no revoke-all-on-reuse (a lost rotation response on mobile would nuke other devices). |
+| POST /logout | `{refreshToken}` | 204 always (idempotent, quiet) — revokes the token's row so it can't mint again |
 
 ### Users (`/users`)
 | Method Path | Notes |
 |---|---|
 | GET /me | `{user}` |
-| PATCH /me | any of `{timezone, language, theme, streakThresholdPct(1-100), notificationsEnabled, reminderLeadMinutes(0-1440)}`; ≥1 field |
+| PATCH /me | any of `{timezone, language, theme, streakThresholdPct(1-100), notificationsEnabled, reminderLeadMinutes(0-1440), eveningReminderEnabled, eveningReminderTime('HH:MM')}`; ≥1 field |
 
 ### Categories (`/categories`) — id may be client-supplied (idempotent create)
 GET / · POST / `{id?, name(≤60), color? #RRGGBB}` · PATCH /:id · DELETE /:id (204, soft)
@@ -91,12 +92,19 @@ GET /?since=<ISO> → `{serverTime, user|null, categories[], tasks[],
 templates[]}` — rows with `updated_at > since` **including soft-deleted**;
 no `since` ⇒ full snapshot. `serverTime` comes from the DB clock.
 
-## Database schema (after 001 + 002)
+## Database schema (after 001–004)
 
 `users`: id uuid PK · email (unique on `lower(email)`) · password_hash ·
 timezone (IANA, default UTC) · language ('en'|'ru'|'tg') · theme
 ('light'|'dark'|'system') · streak_threshold_pct 1-100 (default 80) ·
-notifications_enabled · reminder_lead_minutes 0-1440 · created_at/updated_at.
+notifications_enabled · reminder_lead_minutes 0-1440 ·
+evening_reminder_enabled (default TRUE) · evening_reminder_time TIME
+(default 21:00) · created_at/updated_at.
+
+`refresh_tokens` (003): id uuid PK = the JWT's `jti` · user_id FK CASCADE ·
+expires_at (mirrors the JWT exp) · revoked_at (rotation/logout) · created_at.
+A refresh token is honoured only while its row is live; issuing lives in
+`auth.service::issueTokens`, week-old expired rows purge opportunistically.
 
 `categories`: id · user_id FK CASCADE · name · color CHECK `^#[0-9A-Fa-f]{6}$` ·
 timestamps + deleted_at. Unique `(user_id, lower(name)) WHERE deleted_at IS
