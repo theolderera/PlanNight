@@ -14,8 +14,20 @@ PlanNight/
 ├── backend/     Node.js + Express + PostgreSQL REST API (Dockerised)
 ├── mobile/      Flutter app (Android) — offline-first, Riverpod, drift, fl_chart
 ├── deploy/      Nginx reverse-proxy reference config
+├── docs/        Architecture, backend/mobile references, operations, backlog
 └── docker-compose.yml   Postgres + migrations + API
 ```
+
+## Documentation
+
+| Doc | Contents |
+| --- | --- |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | how the system fits together: offline sync protocol, time model, stats/streak semantics, decision log |
+| [docs/BACKEND.md](docs/BACKEND.md) | backend file map, full API reference, DB schema, gotchas |
+| [docs/MOBILE.md](docs/MOBILE.md) | Flutter file map, state rules, the en/ru/tg l10n system, tests |
+| [docs/OPERATIONS.md](docs/OPERATIONS.md) | production layout, redeploying, building APKs, environment traps |
+| [docs/IMPROVEMENTS.md](docs/IMPROVEMENTS.md) | prioritized backlog |
+| [CLAUDE.md](CLAUDE.md) | condensed onboarding for AI-assisted sessions (invariants & conventions) |
 
 ## Status
 
