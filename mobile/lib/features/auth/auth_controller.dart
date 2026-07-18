@@ -93,12 +93,35 @@ class AuthController extends AsyncNotifier<UserProfile?> {
   }
 
   /// User-initiated sign out.
+  ///
+  /// Order matters to avoid losing local work: first flush any queued writes to
+  /// the server *while still authenticated*, then revoke the session, then wipe
+  /// the local cache (so the next person on this device can't read it). If the
+  /// flush fails (offline) with writes still pending, the cache is KEPT rather
+  /// than destroyed — the user can reconnect and sync, or sign back in.
   Future<void> logout() async {
-    await ref.read(authRepositoryProvider).logout();
+    // Best-effort push of pending local edits before we tear anything down.
+    try {
+      await ref.read(syncEngineProvider).flushOutbox();
+    } catch (_) {/* offline — fall through */}
+
+    final pending = await ref.read(databaseProvider).pendingOutbox();
+
+    await ref.read(authRepositoryProvider).logout(); // revoke + clear tokens
+    if (pending.isEmpty) {
+      // Everything is safely on the server — clear the local copy.
+      await ref.read(databaseProvider).clearAll();
+    }
+    // else: unsynced writes remain; keep the cache so they aren't lost.
     state = const AsyncData(null);
   }
 
-  /// Called by the API client when the session can't be refreshed.
+  /// Called by the API client when the session can't be refreshed (token
+  /// expired/rotated, etc). This is INVOLUNTARY, so it must never destroy data:
+  /// we only drop the tokens and return to the login screen. The local cache —
+  /// including any not-yet-synced outbox writes — is left intact and re-syncs
+  /// on the next successful login. (An earlier version wiped the cache here,
+  /// which lost unsynced work whenever a session expired.)
   Future<void> forceLogout() async {
     await ref.read(tokenStorageProvider).clear();
     state = const AsyncData(null);

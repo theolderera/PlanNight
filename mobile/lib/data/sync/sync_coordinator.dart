@@ -5,16 +5,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers.dart';
 import '../../features/auth/auth_controller.dart';
-import '../local/database.dart';
 import '../models/user_profile.dart';
 import 'sync_engine.dart';
 
 /// Wires together the triggers that drive syncing:
 ///   * on login (or app-start session restore) → full sync
-///   * on logout → wipe the local cache
 ///   * on regaining connectivity → sync
+///
+/// Note: it does NOT wipe the cache on logout. Clearing local data is only ever
+/// done by an EXPLICIT user sign-out (`AuthController.logout`, after flushing
+/// pending writes) — never on an involuntary `forceLogout`, which would destroy
+/// unsynced work when a session merely expired.
 class SyncCoordinator {
-  SyncCoordinator(this._sync, this._db) {
+  SyncCoordinator(this._sync) {
     _connectivitySub = Connectivity().onConnectivityChanged.listen((results) {
       final online = results.any((r) => r != ConnectivityResult.none);
       if (online) _sync.syncNow();
@@ -22,12 +25,9 @@ class SyncCoordinator {
   }
 
   final SyncEngine _sync;
-  final AppDatabase _db;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
 
   void onLogin() => _sync.syncNow();
-
-  Future<void> onLogout() => _db.clearAll();
 
   void dispose() {
     _connectivitySub?.cancel();
@@ -38,7 +38,7 @@ class SyncCoordinator {
 /// triggers and reacts to auth-state changes.
 final syncCoordinatorProvider = Provider<SyncCoordinator>((ref) {
   final engine = ref.watch(syncEngineProvider);
-  final coordinator = SyncCoordinator(engine, ref.watch(databaseProvider));
+  final coordinator = SyncCoordinator(engine);
 
   // A pull can bring back settings changed on another device (theme, language,
   // streak threshold). Publish them so the UI actually reflects them.
@@ -46,12 +46,12 @@ final syncCoordinatorProvider = Provider<SyncCoordinator>((ref) {
     ref.read(authControllerProvider.notifier).updateUser(UserProfile.fromJson(json));
   };
 
-  // React to future auth transitions.
+  // Sync when a session begins. Cache-clearing on sign-out is handled by the
+  // auth controller (explicit logout only), NOT here — see the class doc.
   ref.listen<AsyncValue>(authControllerProvider, (prev, next) {
     final was = prev?.value != null;
     final now = next.value != null;
     if (!was && now) coordinator.onLogin();
-    if (was && !now) coordinator.onLogout();
   });
 
   // Cover the case where we're already signed in when this is first created.
