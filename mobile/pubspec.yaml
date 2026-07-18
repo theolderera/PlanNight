@@ -65,6 +65,10 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+  # Generates the launcher icon (all mipmap densities + Android adaptive icon)
+  # from the brand mark in assets/icon/. Run: `dart run flutter_launcher_icons`.
+  flutter_launcher_icons: ^0.14.3
+
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
@@ -79,6 +83,18 @@ dev_dependencies:
 # 0.44.x that still has it. (sqlparser is only used by drift_dev at build time.)
 dependency_overrides:
   sqlparser: 0.44.0
+
+# Launcher-icon generation (dart run flutter_launcher_icons). The brand mark:
+# a light crescent moon + check on a deep-navy tile. The adaptive icon uses the
+# navy as its background and the transparent moon+check as the foreground, so it
+# looks right under any device mask (circle, squircle, rounded square).
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon/icon_full.png"
+  adaptive_icon_background: "#1E2A56"
+  adaptive_icon_foreground: "assets/icon/icon_foreground.png"
+  min_sdk_android: 21
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
