@@ -664,6 +664,42 @@ abstract class AppLocalizations {
   /// **'Organise'**
   String get settingsOrganise;
 
+  /// No description provided for @settingsData.
+  ///
+  /// In en, this message translates to:
+  /// **'Data'**
+  String get settingsData;
+
+  /// No description provided for @resyncData.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-sync my data'**
+  String get resyncData;
+
+  /// No description provided for @resyncDataHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-upload everything on this device to the server'**
+  String get resyncDataHint;
+
+  /// No description provided for @resyncInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-syncing…'**
+  String get resyncInProgress;
+
+  /// No description provided for @resyncDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is synced'**
+  String get resyncDone;
+
+  /// No description provided for @resyncPending.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} item(s) still to sync — check your connection'**
+  String resyncPending(int count);
+
   /// No description provided for @timezoneLabel.
   ///
   /// In en, this message translates to:

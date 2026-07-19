@@ -141,6 +141,17 @@ class AppDatabase extends _$AppDatabase {
   Future<TaskRow?> findTask(String id) =>
       (select(tasks)..where((t) => t.id.equals(id))).getSingleOrNull();
 
+  // --- One-shot reads of all live rows (used by the repair re-sync) ---------
+
+  Future<List<TaskRow>> allLiveTasks() =>
+      (select(tasks)..where((t) => t.deletedAt.isNull())).get();
+
+  Future<List<CategoryRow>> allLiveCategories() =>
+      (select(categories)..where((c) => c.deletedAt.isNull())).get();
+
+  Future<List<TemplateRow>> allLiveTemplates() =>
+      (select(templates)..where((t) => t.deletedAt.isNull())).get();
+
   // --- Upserts used by the sync engine when pulling server rows -------------
 
   Future<void> upsertTask(TasksCompanion row) =>

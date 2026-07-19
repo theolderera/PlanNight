@@ -7,7 +7,10 @@ export const createTaskSchema = z.object({
   // Optional client-generated UUID for offline-first id stability.
   id: uuid.optional(),
   title: z.string().trim().min(1, 'Title is required').max(200),
-  notes: z.string().max(2000).optional(),
+  // Nullable: the offline client sends `notes: null` for a note-less task (it
+  // serialises every field). Without `.nullable()` that null is rejected 400,
+  // which silently blocks every note-less task from ever syncing.
+  notes: z.string().max(2000).nullable().optional(),
   categoryId: uuid.nullable().optional(),
   priority: priority.optional(), // defaults to 'medium' in DB
   planDate: dateString,

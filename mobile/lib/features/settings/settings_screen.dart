@@ -3,9 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/l10n.dart';
+import '../../core/providers.dart';
 import '../../core/reminder_options.dart';
 import '../../core/theme.dart';
 import '../../core/widgets/app_widgets.dart';
+import '../../data/repositories/category_repository.dart';
+import '../../data/repositories/recurring_repository.dart';
+import '../../data/repositories/task_repository.dart';
 import '../auth/auth_controller.dart';
 
 /// Settings: profile, appearance (theme, language, discipline threshold),
@@ -195,6 +199,20 @@ class SettingsScreen extends ConsumerWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 22),
+
+            SectionLabel(l10n.settingsData),
+            SurfaceCard(
+              radius: 18,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _NavRow(
+                icon: Icons.cloud_sync_outlined,
+                label: l10n.resyncData,
+                subtitle: l10n.resyncDataHint,
+                trailing: Icon(Icons.chevron_right_rounded, color: c.textFaint),
+                onTap: () => _repairSync(context, ref),
+              ),
+            ),
             const SizedBox(height: 24),
 
             // Sign out.
@@ -217,6 +235,28 @@ class SettingsScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Re-queue every locally-cached row and push it to the server. Recovers rows
+  /// that never synced (e.g. writes dropped by an earlier bug). Idempotent:
+  /// already-synced rows 409 and change nothing. Categories go first so tasks/
+  /// templates that reference them land after their category exists.
+  Future<void> _repairSync(BuildContext context, WidgetRef ref) async {
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(SnackBar(content: Text(l10n.resyncInProgress)));
+
+    await ref.read(categoryRepositoryProvider).resyncAll();
+    await ref.read(recurringRepositoryProvider).resyncAll();
+    await ref.read(taskRepositoryProvider).resyncAll();
+    await ref.read(syncEngineProvider).syncNow();
+
+    final pending = await ref.read(databaseProvider).pendingOutbox();
+    if (!context.mounted) return;
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
+      content: Text(pending.isEmpty ? l10n.resyncDone : l10n.resyncPending(pending.length)),
+    ));
   }
 
   String _formatHHmm(BuildContext context, String hhmm) {
@@ -333,9 +373,11 @@ class _ToggleRow extends StatelessWidget {
 }
 
 class _NavRow extends StatelessWidget {
-  const _NavRow({this.icon, required this.label, this.trailing, this.onTap, this.enabled = true});
+  const _NavRow(
+      {this.icon, required this.label, this.subtitle, this.trailing, this.onTap, this.enabled = true});
   final IconData? icon;
   final String label;
+  final String? subtitle;
   final Widget? trailing;
   final VoidCallback? onTap;
   final bool enabled;
@@ -354,10 +396,22 @@ class _NavRow extends StatelessWidget {
               const SizedBox(width: 12),
             ],
             Expanded(
-              child: Text(label,
-                  style: TextStyle(
-                      fontFamily: AppFonts.sans, fontSize: 13.5, fontWeight: FontWeight.w600,
-                      color: enabled ? c.ink : c.textFaint)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      style: TextStyle(
+                          fontFamily: AppFonts.sans, fontSize: 13.5, fontWeight: FontWeight.w600,
+                          color: enabled ? c.ink : c.textFaint)),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(subtitle!,
+                        style: TextStyle(
+                            fontFamily: AppFonts.sans, fontSize: 11.5, fontWeight: FontWeight.w500,
+                            color: c.textMuted)),
+                  ],
+                ],
+              ),
             ),
             ?trailing,
           ],

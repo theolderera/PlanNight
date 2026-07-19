@@ -327,6 +327,27 @@ class AppLocalizationsRu extends AppLocalizations {
   String get settingsOrganise => 'Организация';
 
   @override
+  String get settingsData => 'Данные';
+
+  @override
+  String get resyncData => 'Пересинхронизировать данные';
+
+  @override
+  String get resyncDataHint =>
+      'Заново отправить всё с этого устройства на сервер';
+
+  @override
+  String get resyncInProgress => 'Синхронизация…';
+
+  @override
+  String get resyncDone => 'Всё синхронизировано';
+
+  @override
+  String resyncPending(int count) {
+    return 'Осталось синхронизировать: $count — проверьте подключение';
+  }
+
+  @override
   String timezoneLabel(String timezone) {
     return 'Часовой пояс: $timezone';
   }

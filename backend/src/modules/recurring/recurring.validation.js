@@ -22,7 +22,9 @@ export const createTemplateSchema = z
   .object({
     id: uuid.optional(), // optional client-generated id (offline-first)
     title: z.string().trim().min(1, 'Title is required').max(200),
-    notes: z.string().max(2000).optional(),
+    // Nullable — the offline client serialises `notes: null` for note-less
+    // templates; rejecting that null blocks them from ever syncing.
+    notes: z.string().max(2000).nullable().optional(),
     categoryId: uuid.nullable().optional(),
     priority: priority.optional(),
     startTime: timeString,

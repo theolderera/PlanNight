@@ -322,6 +322,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsOrganise => 'Organise';
 
   @override
+  String get settingsData => 'Data';
+
+  @override
+  String get resyncData => 'Re-sync my data';
+
+  @override
+  String get resyncDataHint =>
+      'Re-upload everything on this device to the server';
+
+  @override
+  String get resyncInProgress => 'Re-syncing…';
+
+  @override
+  String get resyncDone => 'Everything is synced';
+
+  @override
+  String resyncPending(int count) {
+    return '$count item(s) still to sync — check your connection';
+  }
+
+  @override
   String timezoneLabel(String timezone) {
     return 'Timezone: $timezone';
   }

@@ -323,6 +323,27 @@ class AppLocalizationsTg extends AppLocalizations {
   String get settingsOrganise => 'Ташкил';
 
   @override
+  String get settingsData => 'Маълумот';
+
+  @override
+  String get resyncData => 'Синхронизатсияи дубораи маълумот';
+
+  @override
+  String get resyncDataHint =>
+      'Ҳамаи маълумоти ин дастгоҳро аз нав ба сервер фиристодан';
+
+  @override
+  String get resyncInProgress => 'Синхронизатсия…';
+
+  @override
+  String get resyncDone => 'Ҳама чиз синхрон шуд';
+
+  @override
+  String resyncPending(int count) {
+    return '$count чиз ҳанӯз синхрон нашуд — пайвастро тафтиш кунед';
+  }
+
+  @override
   String timezoneLabel(String timezone) {
     return 'Минтақаи вақт: $timezone';
   }

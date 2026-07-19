@@ -72,6 +72,17 @@ class RecurringRepository {
         active: t.active,
       );
 
+  /// Re-queue every locally-cached template as an idempotent create so any that
+  /// never reached the server get another chance. See TaskRepository.resyncAll.
+  Future<int> resyncAll() async {
+    final rows = await _db.allLiveTemplates();
+    for (final r in rows) {
+      final t = templateFromRow(r);
+      await _enqueue(t.id, 'create', _payload(t, includeId: true));
+    }
+    return rows.length;
+  }
+
   Future<void> _enqueue(String id, String op, Map<String, dynamic> payload) {
     return _db.enqueue(OutboxEntriesCompanion.insert(
       entityType: 'template',

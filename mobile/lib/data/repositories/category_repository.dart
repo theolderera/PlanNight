@@ -47,6 +47,17 @@ class CategoryRepository {
     _sync.syncNow();
   }
 
+  /// Re-queue every locally-cached category as an idempotent create so any that
+  /// never reached the server get another chance. See TaskRepository.resyncAll.
+  Future<int> resyncAll() async {
+    final rows = await _db.allLiveCategories();
+    for (final r in rows) {
+      final c = categoryFromRow(r);
+      await _enqueue(c.id, 'create', {'id': c.id, 'name': c.name, 'color': c.colorHex});
+    }
+    return rows.length;
+  }
+
   Future<void> _enqueue(String id, String op, Map<String, dynamic> payload) {
     return _db.enqueue(OutboxEntriesCompanion.insert(
       entityType: 'category',

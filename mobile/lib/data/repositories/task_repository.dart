@@ -123,6 +123,23 @@ class TaskRepository {
     _sync.syncNow();
   }
 
+  /// Re-queue every locally-cached task as an idempotent create (and a
+  /// setStatus for non-planned ones), so rows that never reached the server —
+  /// e.g. writes dropped by an earlier bug — get another chance to sync. Safe
+  /// to run repeatedly: an already-synced create 409s and is dropped as
+  /// "already applied", changing nothing. Caller triggers the sync afterwards.
+  Future<int> resyncAll() async {
+    final rows = await _db.allLiveTasks();
+    for (final r in rows) {
+      final t = taskFromRow(r);
+      await _enqueue(t.id, 'create', _writePayload(t, includeId: true));
+      if (t.status != TaskStatus.planned) {
+        await _enqueue(t.id, 'setStatus', {'status': t.status.api});
+      }
+    }
+    return rows.length;
+  }
+
   // ---- Helpers --------------------------------------------------------------
 
   Future<void> _enqueue(String id, String op, Map<String, dynamic> payload) {
