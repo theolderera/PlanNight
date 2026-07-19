@@ -106,6 +106,8 @@
   "@metGoal": { "placeholders": { "pct": { "type": "int" } } },
   "belowGoal": "Поёнтар аз ҳадаф",
   "statsNeedConnection": "Барои омор пайвасти интернет лозим аст.",
+  "statsNoData": "Ҳанӯз маълумот нест",
+  "statsNoDataHint": "Вазифаҳоро иҷро кунед — пешрафти шумо ин ҷо пайдо мешавад.",
 
   "nothingOnThisDay": "Дар ин рӯз ҳеҷ чиз нест",
 

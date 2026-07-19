@@ -282,6 +282,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsNeedConnection => 'Stats need a connection.';
 
   @override
+  String get statsNoData => 'No data yet';
+
+  @override
+  String get statsNoDataHint =>
+      'Complete tasks and your progress will appear here.';
+
+  @override
   String get nothingOnThisDay => 'Nothing on this day';
 
   @override

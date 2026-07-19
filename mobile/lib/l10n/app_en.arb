@@ -146,6 +146,8 @@
   },
   "belowGoal": "Below goal",
   "statsNeedConnection": "Stats need a connection.",
+  "statsNoData": "No data yet",
+  "statsNoDataHint": "Complete tasks and your progress will appear here.",
 
   "nothingOnThisDay": "Nothing on this day",
 

@@ -586,6 +586,18 @@ abstract class AppLocalizations {
   /// **'Stats need a connection.'**
   String get statsNeedConnection;
 
+  /// No description provided for @statsNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No data yet'**
+  String get statsNoData;
+
+  /// No description provided for @statsNoDataHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete tasks and your progress will appear here.'**
+  String get statsNoDataHint;
+
   /// No description provided for @nothingOnThisDay.
   ///
   /// In en, this message translates to:

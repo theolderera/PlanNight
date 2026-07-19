@@ -344,6 +344,9 @@ class _WeeklyChartCard extends StatelessWidget {
             child: Text(l10n.completionByDay, style: theme.textTheme.titleSmall),
           ),
           const SizedBox(height: 18),
+          if (summary.totalTasks == 0)
+            const _EmptyChart()
+          else ...[
           SizedBox(
             height: 170,
             child: BarChart(
@@ -428,7 +431,41 @@ class _WeeklyChartCard extends StatelessWidget {
               ],
             ),
           ),
+          ],
         ],
+      ),
+    );
+  }
+}
+
+/// Shown inside a chart card when the range has no tasks at all, so an empty
+/// chart never reads as "broken".
+class _EmptyChart extends StatelessWidget {
+  const _EmptyChart();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final l10n = context.l10n;
+    return SizedBox(
+      height: 170,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.insights_rounded, size: 34, color: c.textFaint),
+            const SizedBox(height: 12),
+            Text(l10n.statsNoData,
+                style: TextStyle(fontFamily: AppFonts.sans, fontSize: 14, fontWeight: FontWeight.w700, color: c.textSecondary)),
+            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(l10n.statsNoDataHint,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontFamily: AppFonts.sans, fontSize: 12, fontWeight: FontWeight.w500, color: c.textMuted)),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -478,7 +515,9 @@ class _MonthlyTrendCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [BoxShadow(color: c.shadow, blurRadius: 10, offset: const Offset(0, 2), spreadRadius: -4)],
       ),
-      child: SizedBox(
+      child: summary.totalTasks == 0
+          ? const _EmptyChart()
+          : SizedBox(
         height: 170,
         child: LineChart(
           LineChartData(

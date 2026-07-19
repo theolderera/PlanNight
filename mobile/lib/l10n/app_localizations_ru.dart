@@ -287,6 +287,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get statsNeedConnection => 'Для статистики нужно подключение.';
 
   @override
+  String get statsNoData => 'Пока нет данных';
+
+  @override
+  String get statsNoDataHint =>
+      'Выполняйте задачи — и здесь появится ваш прогресс.';
+
+  @override
   String get nothingOnThisDay => 'В этот день ничего нет';
 
   @override

@@ -106,6 +106,8 @@
   "@metGoal": { "placeholders": { "pct": { "type": "int" } } },
   "belowGoal": "Ниже цели",
   "statsNeedConnection": "Для статистики нужно подключение.",
+  "statsNoData": "Пока нет данных",
+  "statsNoDataHint": "Выполняйте задачи — и здесь появится ваш прогресс.",
 
   "nothingOnThisDay": "В этот день ничего нет",
 

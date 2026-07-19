@@ -283,6 +283,13 @@ class AppLocalizationsTg extends AppLocalizations {
   String get statsNeedConnection => 'Барои омор пайвасти интернет лозим аст.';
 
   @override
+  String get statsNoData => 'Ҳанӯз маълумот нест';
+
+  @override
+  String get statsNoDataHint =>
+      'Вазифаҳоро иҷро кунед — пешрафти шумо ин ҷо пайдо мешавад.';
+
+  @override
   String get nothingOnThisDay => 'Дар ин рӯз ҳеҷ чиз нест';
 
   @override
