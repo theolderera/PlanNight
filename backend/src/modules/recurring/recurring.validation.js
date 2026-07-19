@@ -1,8 +1,17 @@
 import { z } from 'zod';
-import { dateString, timeString, uuid, daysOfWeek } from '../../common/schemas.js';
+import { dateString, timeString, uuid } from '../../common/schemas.js';
 
 const priority = z.enum(['high', 'medium', 'low']);
 const recurrenceType = z.enum(['daily', 'weekly', 'custom']);
+
+// Days of week 0 (Sun)..6 (Sat), unique. Unlike the shared `daysOfWeek` schema
+// this permits an EMPTY array: a 'daily' template legitimately carries no days,
+// and the offline client always serialises the field (sends `[]`, not omitted).
+// The non-empty requirement for weekly/custom is enforced by the superRefine
+// below — putting `.min(1)` here would reject every daily template with a 400.
+const daysOfWeekArray = z
+  .array(z.number().int().min(0).max(6))
+  .refine((arr) => new Set(arr).size === arr.length, 'Days of week must be unique');
 
 // For 'weekly'/'custom' a non-empty daysOfWeek is required; for 'daily' it is
 // ignored (and defaulted to []).
@@ -31,7 +40,7 @@ export const createTemplateSchema = z
     durationMinutes: z.number().int().positive().max(1440).nullable().optional(),
     reminderLeadMinutes: z.number().int().min(0).max(1440).nullable().optional(),
     recurrenceType,
-    daysOfWeek: daysOfWeek.optional(),
+    daysOfWeek: daysOfWeekArray.optional(),
     startDate: dateString.optional(),
     endDate: dateString.nullable().optional(),
     active: z.boolean().optional(),
@@ -48,7 +57,7 @@ export const updateTemplateSchema = z
     durationMinutes: z.number().int().positive().max(1440).nullable().optional(),
     reminderLeadMinutes: z.number().int().min(0).max(1440).nullable().optional(),
     recurrenceType: recurrenceType.optional(),
-    daysOfWeek: daysOfWeek.optional(),
+    daysOfWeek: daysOfWeekArray.optional(),
     startDate: dateString.optional(),
     endDate: dateString.nullable().optional(),
     active: z.boolean().optional(),
