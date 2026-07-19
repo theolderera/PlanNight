@@ -99,7 +99,12 @@ class _HeroTiles extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final c = context.colors;
-    return Row(
+    // IntrinsicHeight gives the Row a bounded height (the tallest tile's), so
+    // CrossAxisAlignment.stretch can equalise the three tiles. Without it, a
+    // stretching Row inside the unbounded-height ListView demands an infinite
+    // height and the whole screen fails to lay out.
+    return IntrinsicHeight(
+      child: Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Streak — the emphasis tile, warm gradient.
@@ -132,6 +137,7 @@ class _HeroTiles extends StatelessWidget {
           ),
         ),
       ],
+      ),
     );
   }
 }
